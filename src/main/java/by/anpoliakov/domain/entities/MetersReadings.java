@@ -9,7 +9,7 @@ import java.util.Map;
 @Setter
 @Getter
 /** Показания конкретных счётчиков на дату */
-public class MeterReading {
+public class MetersReadings {
     private Map<MeterType, Integer> readings;
     private LocalDate date;
     private User user;

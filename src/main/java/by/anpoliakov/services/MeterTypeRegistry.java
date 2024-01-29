@@ -1,13 +1,14 @@
-package by.anpoliakov.repository.impl;
+package by.anpoliakov.services;
 
 import by.anpoliakov.domain.entities.MeterType;
-import by.anpoliakov.domain.entities.User;
-import by.anpoliakov.domain.enums.Role;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 
-/** Класс для управления типами счетчиков */
+/** Класс для проверки/регистрации новых типов счетчиков */
 public class MeterTypeRegistry {
     private static MeterTypeRegistry instance;
     private static Map<String, MeterType> meterTypes;
@@ -35,7 +36,7 @@ public class MeterTypeRegistry {
         return meterTypes.get(typeName);
     }
 
-    public Map<String, MeterType> getTypesMeters(){
-        return meterTypes;
+    public List<String> getNamesTypesMeters(){
+        return meterTypes.keySet().stream().toList();
     }
 }

@@ -6,8 +6,9 @@ import by.anpoliakov.domain.enums.Role;
 import by.anpoliakov.domain.interfaces.ConsoleInterface;
 import by.anpoliakov.repository.UserRepository;
 import by.anpoliakov.repository.impl.UserRepositoryImpl;
-import by.anpoliakov.repository.impl.MeterTypeRegistry;
+import by.anpoliakov.services.MeterTypeRegistry;
 
+import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Scanner;
@@ -40,17 +41,7 @@ public class AdminConsole implements ConsoleInterface {
 //                    currentReadings();
                 }
                 case 2 -> {
-                    Map<String, MeterType> meterTypes = meterTypeRegistry.getTypesMeters();
-                    System.out.println("Already exist types meters: ");
-                    for(Map.Entry entry: meterTypes.entrySet()){
-                        System.out.println(">" + entry.getKey());
-                    }
-
-                    System.out.println("Which type of meter you want to add? Enter please: ");
-                    Scanner scanner = new Scanner(System.in);
-                    String typeMeter = scanner.nextLine().trim();
-                    meterTypeRegistry.addMeterType(typeMeter);
-                    System.out.println("Success!");
+                    addTypeReading();
                 }
                 case 3 -> {
                     changeRoleUser();
@@ -64,6 +55,23 @@ public class AdminConsole implements ConsoleInterface {
         } while (choice != 0);
     }
 
+    /** Метод добавления нового счётчика */
+    public void addTypeReading(){
+        List<String> namesTypesMeters = meterTypeRegistry.getNamesTypesMeters();
+
+        System.out.println("Already exist types meters: ");
+        for(String nameType : namesTypesMeters){
+            System.out.println(">" + nameType);
+        }
+
+        System.out.println("Which type of meter you want to add? Enter please: ");
+        Scanner scanner = new Scanner(System.in);
+        String typeMeter = scanner.nextLine().trim();
+        meterTypeRegistry.addMeterType(typeMeter);
+        System.out.println("Success!");
+    }
+
+    /** Метод для изменения прав Пользователей на Администратора */
     public void changeRoleUser(){
         Map<String, User> users = userRepo.getAllUsers();
         System.out.println("List of users:");
@@ -84,6 +92,7 @@ public class AdminConsole implements ConsoleInterface {
         }
     }
 
+    /** Метод отвечающий за обработку пользовательского ввода номера меню */
     @Override
     public int getInputNumberMenu() {
         Scanner scanner = new Scanner(System.in);
