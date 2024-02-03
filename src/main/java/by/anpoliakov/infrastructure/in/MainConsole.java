@@ -1,21 +1,31 @@
 package by.anpoliakov.infrastructure.in;
 
-import by.anpoliakov.domain.entities.User;
-import by.anpoliakov.domain.enums.Role;
-import by.anpoliakov.domain.interfaces.ConsoleInterface;
+import by.anpoliakov.domain.entity.User;
+import by.anpoliakov.domain.enums.ActionType;
+import by.anpoliakov.domain.enums.RoleType;
+import by.anpoliakov.exception.AuthenticationException;
+import by.anpoliakov.infrastructure.ConsoleInterface;
+import by.anpoliakov.repository.AuditLogRepository;
+import by.anpoliakov.repository.MeterReadingRepository;
+import by.anpoliakov.repository.MeterTypeRepository;
 import by.anpoliakov.repository.UserRepository;
-import by.anpoliakov.services.AuthenticationService;
+import by.anpoliakov.repository.impl.AuditLogRepositoryImpl;
+import by.anpoliakov.repository.impl.MeterReadingRepositoryImpl;
+import by.anpoliakov.repository.impl.MeterTypeRepositoryImpl;
+import by.anpoliakov.repository.impl.UserRepositoryImpl;
+import by.anpoliakov.service.*;
+import by.anpoliakov.service.impl.AuditLogServiceImpl;
+import by.anpoliakov.service.impl.MeterReadingServiceImpl;
+import by.anpoliakov.service.impl.MeterTypeServiceImpl;
+import by.anpoliakov.service.impl.UserServiceImpl;
+import lombok.AllArgsConstructor;
 
-import java.util.NoSuchElementException;
 import java.util.Scanner;
 
+@AllArgsConstructor
 public class MainConsole implements ConsoleInterface {
+    private AuditLogService auditLogService;
     private AuthenticationService authService;
-    private ConsoleInterface console;
-
-    public MainConsole() {
-        this.authService = new AuthenticationService();
-    }
 
     /** Основное меню программы */
     public void showMainMenu() {
@@ -37,38 +47,41 @@ public class MainConsole implements ConsoleInterface {
         } while (choice != 0);
     }
 
-    /** Меню с авторизацией пользователя */
+    /**
+     * Меню с авторизацией пользователя
+     * */
     public void showLoginMenu() {
         System.out.println("----------- Authorization -----------");
         System.out.println("(enter [0] to return to the main menu)");
         Scanner scanner = new Scanner(System.in);
 
         System.out.println("Enter your login: ");
-        String login = scanner.nextLine().trim();
+        java.lang.String login = scanner.nextLine().trim();
         if(login.equals("0")){
             return;
         }
 
         System.out.println("Enter your password: ");
-        String password = scanner.nextLine().trim();
+        java.lang.String password = scanner.nextLine().trim();
         if(password.equals("0")){
             return;
         }
 
-        User user = authService.loginUser(login, password);
-        if(user != null){
-            switch (authService.getRoleCurrentUser(user)){
-                case ADMIN -> {console = new AdminConsole(user);}
-                default -> {console = new UserConsole(user);}
-            }
+        try {
+            User user = authService.authorize(login, password);
+            ConsoleInterface console = getSpecificConsoleByUser(user);
+            auditLogService.addAuditLog(user, ActionType.AUTHORIZATION);
+
             console.showMainMenu();
-        }else {
-            System.out.println("This user was not found! Try again!");
+        }catch (AuthenticationException e){
+            System.out.println(e.getMessage());
             showLoginMenu();
         }
     }
 
-    /** Меню регистрации пользователя */
+    /**
+     * Меню регистрации пользователя
+     * */
     public void showRegistrationMenu() {
         System.out.println("----------- Registration -----------");
         System.out.println("(enter [0] to return to the main menu)");
@@ -76,55 +89,60 @@ public class MainConsole implements ConsoleInterface {
         Scanner scanner = new Scanner(System.in);
 
         System.out.println("Enter your name: ");
-        String name = scanner.nextLine().trim();
+        java.lang.String name = scanner.nextLine().trim();
         if(name.equals("0")){
             return;
         }
 
         System.out.println("Enter your login: ");
-        String login = scanner.nextLine().trim();
+        java.lang.String login = scanner.nextLine().trim();
         if(login.equals("0")){
             return;
         }
 
         System.out.println("Enter your password: ");
-        String password = scanner.nextLine().trim();
+        java.lang.String password = scanner.nextLine().trim();
         if(password.equals("0")){
             return;
         }
 
-        User user = authService.registerUser(name, login, password);
-        if(user != null){
-            console = new UserConsole(user);
-            System.out.println("You are successfully registered! Your account: ");
+        try{
+            User user = authService.register(name, login, password);
+            ConsoleInterface console = getSpecificConsoleByUser(user);
             console.showMainMenu();
-        }else {
-            showRegistrationMenu();
+        }catch (AuthenticationException e){
+            System.out.println(e.getMessage());
+            showMainMenu();
         }
     }
 
-    /** Метод для получения пользовательского ввода
-     * @return число int - номер выбранного меню */
-    public int getInputNumberMenu(){
-        Scanner scanner = new Scanner(System.in);
-        int choice = -1;
+    /**
+     * Метод, который отдаёт нужный тип консоли под определённого пользователя
+     *
+     * @param user - пользователь с имеющимся полем RoleType
+     * @return конкретная реализация интерфейса ConsoleInterface под определённую
+     * роль пользователя */
+    private ConsoleInterface getSpecificConsoleByUser(User user){
+        ConsoleInterface console = null;
 
-        try {
-            if (scanner.hasNextLine()) {
-                choice = scanner.nextInt();
-                scanner.nextLine();
-            }
-        }catch (NoSuchElementException e){
-            choice = -1;
+        MeterReadingRepository repoMeterReading = MeterReadingRepositoryImpl.getInstance();
+        MeterTypeRepository repoMeterType = MeterTypeRepositoryImpl.getInstance();
+        AuditLogRepository repoAuditLog = AuditLogRepositoryImpl.getInstance();
+        UserRepository repoUser = UserRepositoryImpl.getInstance();
+
+        MeterTypeService meterTypeService = new MeterTypeServiceImpl(repoMeterType);
+        MeterReadingService meterReadingService = new MeterReadingServiceImpl(repoMeterReading, meterTypeService);
+        AuditLogService auditLogService = new AuditLogServiceImpl(repoAuditLog);
+        UserService userService = new UserServiceImpl(repoUser);
+
+        if(RoleType.USER.equals(user.getRoleType())){
+            console = new UserConsole(user,meterReadingService,meterTypeService,auditLogService);
         }
 
-        //TODO: разобраться и закрыть Scanner
-        return choice;
-    }
+        if(RoleType.ADMIN.equals(user.getRoleType())){
+            console = new AdminConsole(user, meterReadingService, meterTypeService, userService, auditLogService);
+        }
 
-    //TODO: проверить что если ввели пустую строку? return null REFACTORING
-    private String getInputUserData(){
-        Scanner scanner = new Scanner(System.in);
-        return scanner.nextLine().trim();
+        return console;
     }
 }

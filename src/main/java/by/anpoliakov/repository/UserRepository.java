@@ -1,16 +1,24 @@
 package by.anpoliakov.repository;
 
-import by.anpoliakov.domain.entities.User;
+import by.anpoliakov.domain.entity.User;
 
 import java.util.Map;
+import java.util.Optional;
 
+/**
+ * Интерфейс определяющий сигнатуры методов CRUD операций с объектами типа User
+ * */
 public interface UserRepository {
-    /** Добавление нового пользователя */
-    User add(User user);
-    /** Получение пользователя по логину */
-    User getByLogin(String login);
-    /** Проверка - существует ли пользователь в БД */
-    boolean exist(String login);
+    /**
+     * Добавление нового пользователя
+     */
+    Optional<User> add(User user);
+
+    /**
+     * Получение пользователя по логину
+     */
+    Optional<User> getByLogin(String login);
+
     /** Получение всех пользователей */
     Map<String, User> getAllUsers();
 }

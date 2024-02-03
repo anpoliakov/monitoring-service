@@ -1,26 +1,27 @@
 package by.anpoliakov.repository.impl;
 
-import by.anpoliakov.domain.entities.User;
-import by.anpoliakov.domain.enums.Role;
+import by.anpoliakov.domain.entity.User;
+import by.anpoliakov.domain.enums.RoleType;
 import by.anpoliakov.repository.UserRepository;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
-/** Реализация интерфейса репозитория (локальная БД пользователей) */
+/**
+ * Реализация интерфейса UserRepository,
+ * локальный репозиторий для хранения сущности User
+ * */
 public class UserRepositoryImpl implements UserRepository {
-    private static UserRepositoryImpl instance;
+    private static UserRepository instance;
     private Map<String, User> users;
 
     private UserRepositoryImpl() {
-        users = new HashMap<>(5);
-        User admin = new User("Administrator", "admin", "admin");
-        admin.setRole(Role.ADMIN);
-        add(admin);
+        users = new HashMap<>();
+        installInitialData();
     }
 
-    /** Singleton метод для работы с одной базой данных  */
-    public static UserRepositoryImpl getInstance(){
+    public static UserRepository getInstance(){
         if (instance == null){
             instance = new UserRepositoryImpl();
         }
@@ -28,24 +29,25 @@ public class UserRepositoryImpl implements UserRepository {
     }
 
     @Override
-    public User add(User user) {
-        String login = user.getLogin();
-        users.put(login, user);
-        return users.get(login);
+    public Optional<User> add(User user) {
+        users.put(user.getLogin(), user);
+        return Optional.ofNullable(users.get(user.getLogin()));
     }
 
     @Override
-    public User getByLogin(String login) {
-        return users.get(login);
-    }
-
-    @Override
-    public boolean exist(String login) {
-        return users.containsKey(login);
+    public Optional<User> getByLogin(String login) {
+        return Optional.ofNullable(users.get(login));
     }
 
     @Override
     public Map<String, User> getAllUsers() {
         return users;
+    }
+
+    private void installInitialData(){
+        User administrator = new User("Administrator","admin","admin", RoleType.ADMIN);
+        User testUser = new User("TestName", "test", "test", RoleType.USER);
+        users.put(administrator.getLogin(), administrator);
+        users.put(testUser.getLogin(), testUser);
     }
 }

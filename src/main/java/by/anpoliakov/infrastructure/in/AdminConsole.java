@@ -1,113 +1,173 @@
 package by.anpoliakov.infrastructure.in;
 
-import by.anpoliakov.domain.entities.MeterType;
-import by.anpoliakov.domain.entities.User;
-import by.anpoliakov.domain.enums.Role;
-import by.anpoliakov.domain.interfaces.ConsoleInterface;
-import by.anpoliakov.repository.UserRepository;
-import by.anpoliakov.repository.impl.UserRepositoryImpl;
-import by.anpoliakov.services.MeterTypeRegistry;
+import by.anpoliakov.domain.entity.AuditLog;
+import by.anpoliakov.domain.entity.MetersReadings;
+import by.anpoliakov.domain.entity.User;
+import by.anpoliakov.domain.enums.RoleType;
+import by.anpoliakov.exception.MeterReadingException;
+import by.anpoliakov.exception.MeterTypeException;
+import by.anpoliakov.exception.UserException;
+import by.anpoliakov.infrastructure.ConsoleInterface;
+import by.anpoliakov.service.AuditLogService;
+import by.anpoliakov.service.MeterReadingService;
+import by.anpoliakov.service.MeterTypeService;
+import by.anpoliakov.service.UserService;
+import lombok.AllArgsConstructor;
 
 import java.util.List;
 import java.util.Map;
-import java.util.NoSuchElementException;
 import java.util.Scanner;
 
+@AllArgsConstructor
+/**
+ * Реализация интерфейса ConsoleInterface,
+ * представляет собой консоль для администратора
+ * */
 public class AdminConsole implements ConsoleInterface {
-    private UserRepository userRepo;
-    private MeterTypeRegistry meterTypeRegistry;
     private User currentUser;
+    private MeterReadingService meterReadingService;
+    private MeterTypeService meterTypeService;
+    private UserService userService;
+    private AuditLogService auditLogService;
 
-    public AdminConsole(User user) {
-        this.currentUser = user;
-        this.userRepo = UserRepositoryImpl.getInstance();
-        meterTypeRegistry = new MeterTypeRegistry();
-    }
-
+    /**
+     * Главное меню данной консоли, точка входа в классе
+     * */
     @Override
     public void showMainMenu() {
         int choice = -1;
 
-        do{
+        while (choice != 0){
             System.out.println("----------- Menu ADMIN -----------");
             System.out.println("[1] View the readings of all users");
             System.out.println("[2] Add type of Reading");
             System.out.println("[3] Change role of user");
+            System.out.println("[4] View audit logs by user");
             System.out.println("[0] Exit");
             System.out.print("Enter the option selected:");
 
             switch (choice = getInputNumberMenu()){
-                case 1 -> {
-//                    currentReadings();
+                case 1 -> {showMetersReadingsUsers();}
+                case 2 -> {createNewTypeMeter();}
+                case 3 -> {changeRoleUser();}
+                case 4 -> {showAuditLog();}
+                case 0 -> {
+                    choice = 0;
                 }
-                case 2 -> {
-                    addTypeReading();
-                }
-                case 3 -> {
-                    changeRoleUser();
-                }
-                case 4 -> {
-//                    showHistory();
-                }
-                case 0 -> {}
                 default -> System.out.println("Incorrect menu selection, please try again:");
             }
-        } while (choice != 0);
-    }
-
-    /** Метод добавления нового счётчика */
-    public void addTypeReading(){
-        List<String> namesTypesMeters = meterTypeRegistry.getNamesTypesMeters();
-
-        System.out.println("Already exist types meters: ");
-        for(String nameType : namesTypesMeters){
-            System.out.println(">" + nameType);
-        }
-
-        System.out.println("Which type of meter you want to add? Enter please: ");
-        Scanner scanner = new Scanner(System.in);
-        String typeMeter = scanner.nextLine().trim();
-        meterTypeRegistry.addMeterType(typeMeter);
-        System.out.println("Success!");
-    }
-
-    /** Метод для изменения прав Пользователей на Администратора */
-    public void changeRoleUser(){
-        Map<String, User> users = userRepo.getAllUsers();
-        System.out.println("List of users:");
-        for(Map.Entry entry: users.entrySet()){
-            System.out.println(entry.getKey());
-        }
-
-        System.out.println("Enter the user login to change the role to administrator: ");
-        Scanner scanner = new Scanner(System.in);
-        String login = scanner.nextLine().trim();
-
-        User user = userRepo.getByLogin(login);
-        if(user != null){
-            user.setRole(Role.ADMIN);
-            System.out.println("User " + user.getLogin() + " is now an administrator ");
-        }else {
-            System.out.println("User is not found! ");
         }
     }
 
-    /** Метод отвечающий за обработку пользовательского ввода номера меню */
-    @Override
-    public int getInputNumberMenu() {
+    /**
+     * Метод для взаимодействия с администратором и добавлением нового счётчика
+     * */
+    public void createNewTypeMeter(){
+        System.out.println("------- Menu: creating new type of meter -------");
         Scanner scanner = new Scanner(System.in);
-        int choice = -1;
+
+        System.out.println("Enter new type: ");
+        String newType = scanner.nextLine();
 
         try {
-            if (scanner.hasNextLine()) {
-                choice = scanner.nextInt();
-                scanner.nextLine();
+            meterTypeService.addMeterType(newType);
+            System.out.println("Success!");
+
+        }catch (MeterTypeException e){
+            System.out.println(e.getMessage());
+            showMainMenu();
+        }
+    }
+
+    /**
+     * Метод для взаимодействия с администратором и предоставление всех показаний
+     * */
+    private void showMetersReadingsUsers() {
+        System.out.println("------- Menu: show all meters readings users -------");
+        Scanner scanner = new Scanner(System.in);
+        Map<String, User> allUsers = userService.getAllUsers();
+
+        System.out.println("Logins of users: ");
+        for(Map.Entry<String, User> entry: allUsers.entrySet()){
+            if(entry.getValue().getRoleType() == RoleType.USER){
+                System.out.println(entry.getKey());
             }
-        }catch (NoSuchElementException e){
-            choice = -1;
         }
 
-        //TODO: разобраться и закрыть Scanner
-        return choice;
+        System.out.println("Enter the user's login to display meters readings: ");
+        String loginUser = scanner.nextLine();
+
+        try {
+            List<MetersReadings> metersReadingsByUser = meterReadingService.getMetersReadingsByUser(loginUser);
+            for (MetersReadings metersReadings : metersReadingsByUser){
+                System.out.println(metersReadings);
+            }
+
+            System.out.println("Press any key to continue...");
+            scanner.nextLine();
+        }catch (MeterReadingException e){
+            System.out.println(e.getMessage());
+            showMainMenu();
+        }
+    }
+
+
+    /**
+     * Метод для взаимодействия с администратором и изменение роли у других пользователей
+     * */
+    public void changeRoleUser(){
+        System.out.println("------- Menu: change role user -------");
+        Scanner scanner = new Scanner(System.in);
+
+        //показываю всех пользователей
+        Map <String, User> allUsers = userService.getAllUsers();
+        System.out.println("Exist user's login: ");
+        for(Map.Entry<String, User> entry: allUsers.entrySet()){
+            System.out.println("-> User: " + entry.getKey() + ", role: " + entry.getValue().getRoleType());
+        }
+
+        //показываю возможные р
+        RoleType[] values = RoleType.values();
+        System.out.println("Exist roles: ");
+        for (RoleType roleType : values){
+            System.out.println("-> " + roleType.name());
+        }
+
+        System.out.println("Enter user's login: ");
+        String loginUser = scanner.nextLine();
+
+        System.out.println("Enter role: ");
+        String roleUser = scanner.nextLine();
+
+
+        try {
+            RoleType roleType = RoleType.valueOf(roleUser.toUpperCase());
+            User user = userService.getByLogin(loginUser);
+            userService.changeUserRole(user, roleType);
+
+        }catch (IllegalArgumentException e){
+            System.out.println("Incorrect type of role!");
+        }catch (UserException e){
+            System.out.println(e.getMessage());
+        }finally {
+            showMainMenu();
+        }
+    }
+
+    /**
+     * Метод для взаимодействия с администратором и показ списка аудита
+     * */
+    public void showAuditLog() {
+        System.out.println("------- Menu: audit logs -------");
+        Map<String, List<AuditLog>> allAuditLogs = auditLogService.getAllAuditLogs();
+
+        for(Map.Entry<String, List<AuditLog>> auditLogs: allAuditLogs.entrySet()){
+            System.out.println("-> audit logs for user: " + auditLogs.getKey());
+
+            for (AuditLog auditlog : auditLogs.getValue()){
+                System.out.println(auditlog);
+            }
+        }
+
     }
 }

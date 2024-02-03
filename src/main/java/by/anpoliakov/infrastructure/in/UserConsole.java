@@ -1,32 +1,36 @@
 package by.anpoliakov.infrastructure.in;
 
-import by.anpoliakov.domain.entities.MetersReadings;
-import by.anpoliakov.domain.entities.MeterType;
-import by.anpoliakov.domain.entities.User;
-import by.anpoliakov.domain.interfaces.ConsoleInterface;
-import by.anpoliakov.services.MeterTypeRegistry;
-import by.anpoliakov.services.MetersReadingsService;
+import by.anpoliakov.domain.entity.MeterType;
+import by.anpoliakov.domain.entity.MetersReadings;
+import by.anpoliakov.domain.entity.User;
+import by.anpoliakov.domain.enums.ActionType;
+import by.anpoliakov.exception.MeterReadingException;
+import by.anpoliakov.exception.MeterTypeException;
+import by.anpoliakov.infrastructure.ConsoleInterface;
+import by.anpoliakov.service.AuditLogService;
+import by.anpoliakov.service.MeterReadingService;
+import by.anpoliakov.service.MeterTypeService;
+import lombok.AllArgsConstructor;
 
-import java.time.LocalDate;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Map;
+import java.util.Scanner;
 
+@AllArgsConstructor
 public class UserConsole implements ConsoleInterface {
-    private MetersReadingsService metersReadingsService;
-    private MeterTypeRegistry meterTypeRegistry;
     private User currentUser;
+    private MeterReadingService meterReadingService;
+    private MeterTypeService meterTypeService;
+    private AuditLogService auditLogService;
 
-    public UserConsole(User user) {
-        currentUser = user;
-        meterTypeRegistry = MeterTypeRegistry.getInstance();
-        this.metersReadingsService = new MetersReadingsService(meterTypeRegistry);
-    }
-
-    /** Метод показа главного меню авторизированного пользователя */
+    /**
+     * Метод показа главного меню авторизированного пользователя
+     * */
     public void showMainMenu() {
         int choice = -1;
 
-        do{
+        while (choice != 0){
             System.out.println("----------- Menu USER -----------");
             System.out.println("[1] View current meter readings");
             System.out.println("[2] Input meter readings");
@@ -44,99 +48,96 @@ public class UserConsole implements ConsoleInterface {
                     showReadingsForSpecificMonth();}
                 case 4 -> {
                     showHistory();}
-                case 0 -> {}
+                case 0 -> {
+                    choice = 0;
+                    auditLogService.addAuditLog(currentUser, ActionType.WORK_COMPLETION);
+                }
                 default -> System.out.println("Incorrect menu selection, please try again:");
             }
-        } while (choice != 0);
+        }
     }
 
-    /** Метод для отображения последних показаний пользователя */
+    /**
+     * Метод для отображения последних показаний пользователя
+     * */
     private void showCurrentReadings() {
-        MetersReadings lastMetersReadings = metersReadingsService.getLastMeterReadingsUser(currentUser);
+        try {
+            MetersReadings currentMetersReadings = meterReadingService.getLastMetersReadingsUser(currentUser.getLogin());
 
-        if(lastMetersReadings != null){
             System.out.println("The last meters readings: ");
-            System.out.println("Date: " + lastMetersReadings.getDate());
-            Map<MeterType, Integer> readings = lastMetersReadings.getReadings();
+            LocalDateTime date = currentMetersReadings.getDate();
+            System.out.println("Day: " + date.getDayOfMonth() + ", Month: " + date.getMonth());
+            Map<MeterType, Integer> readings = currentMetersReadings.getReadings();
             for(Map.Entry entity : readings.entrySet()){
                 System.out.println("Type meter: " + entity.getKey() + ", value: " + entity.getValue());
             }
 
             System.out.println("Press any key to continue...");
             new Scanner(System.in).nextLine();
-        }else {
-            System.out.println("Firstly, input the meter readings (number menu [2])!");
+        }catch (MeterReadingException e){
+            System.out.println(e.getMessage());
+            showMainMenu();
         }
     }
 
     private void inputReadings() {
         Scanner scanner = new Scanner(System.in);
-        LocalDate nowDate = LocalDate.now();
 
-        //если пользователь хочет довнести данные
-        Optional<MetersReadings> optionalReadings = metersReadingsService.getMetersReadingsByUserAndDate(currentUser, nowDate);
-        if(optionalReadings.isPresent()){
-            MetersReadings metersReadings = optionalReadings.get();
-            Map<MeterType, Integer> readings = metersReadings.getReadings();
-            List<String> existTypesMeters = meterTypeRegistry.getNamesTypesMeters();
-
-            List<String> collect = existTypesMeters.stream().
-                    filter(type -> readings.containsKey(meterTypeRegistry.getMeterType(type))).
-                    collect(Collectors.toList());
-
-            for(String nameType : collect){
-                int valueMeter = 0;
-
-                while(true){
-                    System.out.println("Enter value meter [" + nameType + "]: ");
-
-                    try{
-                        valueMeter = scanner.nextInt();
-                        break;
-                    }catch (InputMismatchException e){
-                        System.out.println("Incorrect value, please try agan!");
-                    }
-                }
-
-                metersReadingsService.addReading(currentUser, nameType, valueMeter, nowDate);
-                System.out.println("ОК. Value [" + valueMeter + "], for meter readings [" + nameType + "] successfully recorded! ");
+        try{
+            List<String> namesMetersTypes = meterTypeService.getNamesMetersTypes();
+            System.out.println("------- Menu for enter meters readings ------- ");
+            System.out.println("Existing meters types: ");
+            for (String meter : namesMetersTypes){
+                System.out.println("-> " + meter);
             }
 
-            System.out.println("Сurrent month's readings are up to date!\nPress any key to continue...");
-            scanner.nextLine();
-        }else {
-            //пользователь ещё не вносил ни каких показаний за текущий месяц
-            //или только что создал аккаунт
+            System.out.println("Enter name of meter: ");
+            String nameMeter = scanner.nextLine();
 
+            System.out.println("Enter reading of meter: ");
+            int reading = scanner.nextInt();
 
+            meterReadingService.addReading(currentUser.getLogin(), nameMeter, reading);
+            auditLogService.addAuditLog(currentUser, ActionType.SUBMIT_READING_METER);
+        }catch (MeterTypeException e){
+            System.out.println(e.getMessage());
+            showMainMenu();
+        }catch (MeterReadingException e){
+            System.out.println(e.getMessage());
+            inputReadings();
         }
     }
 
     private void showReadingsForSpecificMonth() {
-        //просим ввести месяц и показываем данные по конкретному месяцу
+        System.out.println("------- Search for meter readings by month and year -------");
+        Scanner scanner = new Scanner(System.in);
+
+        System.out.println("Enter month: ");
+        int month = scanner.nextInt();
+
+        System.out.println("Enter year: ");
+        int year = scanner.nextInt();
+
+        try {
+            MetersReadings metersReadings = meterReadingService.getMetersReadingsBySpecificMonth(currentUser.getLogin(), month, year);
+            System.out.println(metersReadings);
+        }catch (MeterReadingException e){
+            System.out.println(e.getMessage());
+            showMainMenu();
+        }
     }
 
     private void showHistory() {
-        //показываем всю историю показаний по текущему пользователю
-
-    }
-
-    /** Метод для получения пользовательского ввода
-     * @return число int - номер выбранного меню */
-    public int getInputNumberMenu(){
-        Scanner scanner = new Scanner(System.in);
-        int choice = -1;
-
-        try {
-            if (scanner.hasNextLine()) {
-                choice = scanner.nextInt();
-                scanner.nextLine();
+        System.out.println("------- Your history of adding meters readings -------");
+        try{
+            List<MetersReadings> metersReadingsUser = meterReadingService.getMetersReadingsByUser(currentUser.getLogin());
+            for (MetersReadings metersReadings : metersReadingsUser){
+                System.out.println(metersReadings);
             }
-        }catch (NoSuchElementException e){
-            choice = -1;
+            auditLogService.addAuditLog(currentUser, ActionType.METERS_READINGS_VIEW);
+        }catch (MeterReadingException e){
+            System.out.println(e.getMessage());
+            showMainMenu();
         }
-
-        //TODO: разобраться и закрыть Scanner
-        return choice;
     }
 }
