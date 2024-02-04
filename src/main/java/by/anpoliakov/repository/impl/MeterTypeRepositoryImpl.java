@@ -39,7 +39,7 @@ public class MeterTypeRepositoryImpl implements MeterTypeRepository {
 
             connection.commit();
         } catch (SQLException e) {
-            rollBack(connection, e);
+            ConnectionManager.rollBack(connection);
         }finally {
             ConnectionManager.closeStatement(pst);
             ConnectionManager.closeConnection();
@@ -97,20 +97,5 @@ public class MeterTypeRepositoryImpl implements MeterTypeRepository {
         }
 
         return Optional.ofNullable(names);
-    }
-
-    /**
-     * Метод для отмены транзакции
-     * */
-    private void rollBack(Connection connection, SQLException e){
-        System.err.println("Произошла ошибка: " + e.getMessage());
-        if (connection != null) {
-            try {
-                connection.rollback();
-                System.err.println("Транзакция отменена.");
-            } catch (SQLException rollbackException) {
-                System.err.println("Ошибка при откате транзакции: " + rollbackException.getMessage());
-            }
-        }
     }
 }

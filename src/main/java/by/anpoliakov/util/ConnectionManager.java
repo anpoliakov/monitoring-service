@@ -90,5 +90,19 @@ public class ConnectionManager {
 
         return properties;
     }
+
+    /**
+     * Метод для отмены транзакции
+     * */
+    //TODO в процессе поправки Exception
+    public static void rollBack(Connection connection){
+        if (connection != null) {
+            try {
+                connection.rollback();
+            } catch (SQLException rollbackException) {
+                System.err.println("Ошибка при откате транзакции: " + rollbackException.getMessage());
+            }
+        }
+    }
 }
 
