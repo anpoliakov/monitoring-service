@@ -1,5 +1,7 @@
 package by.anpoliakov;
 
+import by.anpoliakov.infrastructure.constant.Constants;
+import by.anpoliakov.infrastructure.constant.ConstantsSQL;
 import by.anpoliakov.infrastructure.in.MainConsole;
 import by.anpoliakov.repository.AuditLogRepository;
 import by.anpoliakov.repository.UserRepository;
@@ -9,9 +11,22 @@ import by.anpoliakov.service.AuditLogService;
 import by.anpoliakov.service.AuthenticationService;
 import by.anpoliakov.service.impl.AuditLogServiceImpl;
 import by.anpoliakov.service.impl.AuthenticationServiceImpl;
+import by.anpoliakov.util.ConnectionManager;
+import liquibase.Liquibase;
+import liquibase.database.Database;
+import liquibase.database.DatabaseFactory;
+import liquibase.database.jvm.JdbcConnection;
+import liquibase.exception.DatabaseException;
+import liquibase.resource.ClassLoaderResourceAccessor;
+
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.sql.Statement;
 
 public class RunnerApplication {
     public static void main(String[] args) {
+        prepareDataBase();
+
         UserRepository repoUser = UserRepositoryImpl.getInstance();
         AuditLogRepository repoAuditLog = AuditLogRepositoryImpl.getInstance();
 
@@ -20,5 +35,41 @@ public class RunnerApplication {
 
         MainConsole mainConsole = new MainConsole(auditLogService, authService);
         mainConsole.showMainMenu();
+    }
+
+    public static void prepareDataBase(){
+        createSystemSchemeLiquibase();
+        Database database = null;
+
+        try {
+            Connection connection = ConnectionManager.createConnection();
+            database = DatabaseFactory.getInstance().findCorrectDatabaseImplementation(new JdbcConnection(connection));
+            database.setDefaultSchemaName(ConstantsSQL.NAME_SYSTEM_SCHEMA_LIQUIBASE);
+
+            Liquibase liquibase = new Liquibase(Constants.PATH_TO_CHANGELOG_FILE, new ClassLoaderResourceAccessor(), database);
+            liquibase.update();
+            System.out.println("Миграции успешно выполнены!");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }finally {
+            try {
+                database.close();
+            } catch (DatabaseException e) {
+                throw new RuntimeException(e);
+            }
+
+            ConnectionManager.closeConnection();
+        }
+    }
+
+    private static void createSystemSchemeLiquibase(){
+        Connection connection = ConnectionManager.createConnection();
+        try (Statement st = connection.createStatement()){
+            st.execute("CREATE SCHEMA IF NOT EXISTS " + ConstantsSQL.NAME_SYSTEM_SCHEMA_LIQUIBASE);
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }finally {
+            ConnectionManager.closeConnection();
+        }
     }
 }

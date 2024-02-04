@@ -1,18 +1,27 @@
 package by.anpoliakov.repository.impl;
 
 import by.anpoliakov.domain.entity.AuditLog;
-import by.anpoliakov.domain.entity.User;
+import by.anpoliakov.domain.enums.ActionType;
+import by.anpoliakov.infrastructure.constant.ConstantsSQL;
 import by.anpoliakov.repository.AuditLogRepository;
+import by.anpoliakov.util.ConnectionManager;
 
-import java.util.*;
+import java.math.BigInteger;
+import java.sql.*;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 
+/** Реализация интерфейса AuditLogRepository и
+ * предоставляет методы для взаимодействия с таблицей audit_logs в БД */
 public class AuditLogRepositoryImpl implements AuditLogRepository {
     private static AuditLogRepository instance;
-    private Map<String, List<AuditLog>> auditLogs;
+    private Connection connection = null;
+    private PreparedStatement pst = null;
+    private ResultSet rs = null;
 
-    private AuditLogRepositoryImpl() {
-        auditLogs = new HashMap<>();
-    }
+    private AuditLogRepositoryImpl() {}
 
     public static AuditLogRepository getInstance(){
         if (instance == null){
@@ -21,28 +30,73 @@ public class AuditLogRepositoryImpl implements AuditLogRepository {
         return instance;
     }
 
+    /** Метод для добавления сущности AuditLog в базу данных */
     @Override
     public void add(AuditLog auditLog) {
-        List <AuditLog> newAuditLogsList = null;
-        Optional<List<AuditLog>> optionalAuditLogsList = getAuditLogsByUser(auditLog.getUser());
+        try {
+            connection = ConnectionManager.createConnection();
+            connection.setAutoCommit(false);
 
-        if(optionalAuditLogsList.isEmpty()){
-            newAuditLogsList = new ArrayList<>();
-            newAuditLogsList.add(auditLog);
-            auditLogs.put(auditLog.getUser().getLogin(), newAuditLogsList);
-        }else {
-            List<AuditLog> existAuditLogList = optionalAuditLogsList.get();
-            existAuditLogList.add(auditLog);
+            pst = connection.prepareStatement (ConstantsSQL.CREATE_AUDIT_LOG);
+            pst.setString(1, auditLog.getLoginUser());
+            pst.setTimestamp(2, Timestamp.valueOf(auditLog.getDate()));
+            pst.setString(3, auditLog.getActionType().name());
+            pst.executeUpdate();
+
+            connection.commit();
+        } catch (SQLException e) {
+            rollBack(connection, e);
+        }finally {
+            ConnectionManager.closeStatement(pst);
+            ConnectionManager.closeConnection();
         }
     }
 
     @Override
-    public Map<String, List<AuditLog>> getAllAuditLogs() {
-        return auditLogs;
+    public Optional<List<AuditLog>> getAuditLogsByLogin(String loginUser) {
+        List <AuditLog> auditLogs = null;
+
+        try {
+            connection = ConnectionManager.createConnection();
+
+            pst = connection.prepareStatement(ConstantsSQL.SELECT_AUDIT_LOGS_BY_LOGIN);
+            pst.setString(1, loginUser);
+            rs = pst.executeQuery();
+            auditLogs = new ArrayList<>();
+
+            while (rs.next()){
+                BigInteger auditLogId = rs.getBigDecimal(ConstantsSQL.AUDIT_LOG_ID_LABEL).toBigInteger();
+                Timestamp timestamp = rs.getTimestamp(ConstantsSQL.AUDIT_LOG_DATE_LABEL);
+                LocalDateTime date = timestamp.toLocalDateTime();
+                String login = rs.getString(ConstantsSQL.USER_LOGIN_LABEL);
+                ActionType action = ActionType.valueOf(rs.getString(ConstantsSQL.ACTION_TYPE_NAME_LABEL));
+
+                auditLogs.add(new AuditLog(auditLogId, login, date, action));
+            }
+
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        } finally {
+            ConnectionManager.closeResultSet(rs);
+            ConnectionManager.closeStatement(pst);
+            ConnectionManager.closeConnection();
+        }
+
+        return Optional.ofNullable(auditLogs);
     }
 
-    @Override
-    public Optional<List<AuditLog>> getAuditLogsByUser(User user) {
-        return Optional.ofNullable(auditLogs.get(user.getLogin()));
+    /**
+     * Метод для отмены транзакции
+     * */
+    private void rollBack(Connection connection, SQLException e){
+        System.err.println("Произошла ошибка: " + e.getMessage());
+        if (connection != null) {
+            try {
+                connection.rollback();
+                System.err.println("Транзакция отменена.");
+            } catch (SQLException rollbackException) {
+                System.err.println("Ошибка при откате транзакции: " + rollbackException.getMessage());
+            }
+        }
     }
 }

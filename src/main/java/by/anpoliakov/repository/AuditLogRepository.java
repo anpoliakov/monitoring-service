@@ -9,6 +9,5 @@ import java.util.Optional;
 
 public interface AuditLogRepository {
     void add(AuditLog auditLog);
-    Map<java.lang.String, List<AuditLog>> getAllAuditLogs();
-    Optional<List<AuditLog>> getAuditLogsByUser(User user);
+    Optional<List<AuditLog>> getAuditLogsByLogin(String loginUser);
 }

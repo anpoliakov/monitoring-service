@@ -23,7 +23,8 @@ public class MeterTypeServiceImpl implements MeterTypeService {
             throw new MeterTypeException("Incorrect name of type meter!");
         }
 
-        if(getMeterType(typeName) != null){
+        Optional<MeterType> optionalMeterType = repoMeterType.getMeterType(typeName);
+        if(optionalMeterType.isPresent()){
             throw new MeterTypeException("This meter already exists in the database!");
         }
 

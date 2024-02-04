@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.10.xsd">
+
+    <changeSet id="create-table-audit-logs" author="anpoliakov">
+        <createTable tableName="audit_logs" schemaName="entities">
+            <column name="audit_log_id" type="BIGINT" >
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+
+            <column name="user_id" type="BIGINT" >
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="date" type="TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="action_type_id" type="BIGINT" >
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <createSequence sequenceName="sequence_audit_logs_id" startValue="1" incrementBy="1" schemaName="entities"/>
+        <addDefaultValue tableName="audit_logs" schemaName="entities" columnName="audit_log_id" columnDataType="BIGINT" defaultValueSequenceNext="sequence_audit_logs_id"/>
+    </changeSet>
+
+</databaseChangeLog>

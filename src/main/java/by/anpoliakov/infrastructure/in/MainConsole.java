@@ -4,7 +4,6 @@ import by.anpoliakov.domain.entity.User;
 import by.anpoliakov.domain.enums.ActionType;
 import by.anpoliakov.domain.enums.RoleType;
 import by.anpoliakov.exception.AuthenticationException;
-import by.anpoliakov.infrastructure.ConsoleInterface;
 import by.anpoliakov.repository.AuditLogRepository;
 import by.anpoliakov.repository.MeterReadingRepository;
 import by.anpoliakov.repository.MeterTypeRepository;
@@ -85,14 +84,7 @@ public class MainConsole implements ConsoleInterface {
     public void showRegistrationMenu() {
         System.out.println("----------- Registration -----------");
         System.out.println("(enter [0] to return to the main menu)");
-
         Scanner scanner = new Scanner(System.in);
-
-        System.out.println("Enter your name: ");
-        java.lang.String name = scanner.nextLine().trim();
-        if(name.equals("0")){
-            return;
-        }
 
         System.out.println("Enter your login: ");
         java.lang.String login = scanner.nextLine().trim();
@@ -107,7 +99,7 @@ public class MainConsole implements ConsoleInterface {
         }
 
         try{
-            User user = authService.register(name, login, password);
+            User user = authService.register(login, password);
             ConsoleInterface console = getSpecificConsoleByUser(user);
             console.showMainMenu();
         }catch (AuthenticationException e){

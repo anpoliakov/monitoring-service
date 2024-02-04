@@ -1,20 +1,16 @@
 package by.anpoliakov.infrastructure.in;
 
-import by.anpoliakov.domain.entity.MeterType;
-import by.anpoliakov.domain.entity.MetersReadings;
+import by.anpoliakov.domain.entity.MeterReading;
 import by.anpoliakov.domain.entity.User;
 import by.anpoliakov.domain.enums.ActionType;
 import by.anpoliakov.exception.MeterReadingException;
 import by.anpoliakov.exception.MeterTypeException;
-import by.anpoliakov.infrastructure.ConsoleInterface;
 import by.anpoliakov.service.AuditLogService;
 import by.anpoliakov.service.MeterReadingService;
 import by.anpoliakov.service.MeterTypeService;
 import lombok.AllArgsConstructor;
 
-import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Map;
 import java.util.Scanner;
 
 @AllArgsConstructor
@@ -62,14 +58,11 @@ public class UserConsole implements ConsoleInterface {
      * */
     private void showCurrentReadings() {
         try {
-            MetersReadings currentMetersReadings = meterReadingService.getLastMetersReadingsUser(currentUser.getLogin());
-
+            List<MeterReading> metersReadings = meterReadingService.getLastMetersReadingsByUserId(currentUser.getId());
             System.out.println("The last meters readings: ");
-            LocalDateTime date = currentMetersReadings.getDate();
-            System.out.println("Day: " + date.getDayOfMonth() + ", Month: " + date.getMonth());
-            Map<MeterType, Integer> readings = currentMetersReadings.getReadings();
-            for(Map.Entry entity : readings.entrySet()){
-                System.out.println("Type meter: " + entity.getKey() + ", value: " + entity.getValue());
+
+            for (MeterReading meterReading : metersReadings){
+                System.out.println("-> " + meterReading);
             }
 
             System.out.println("Press any key to continue...");
@@ -97,7 +90,7 @@ public class UserConsole implements ConsoleInterface {
             System.out.println("Enter reading of meter: ");
             int reading = scanner.nextInt();
 
-            meterReadingService.addReading(currentUser.getLogin(), nameMeter, reading);
+            meterReadingService.addReading(currentUser.getId(), nameMeter, reading);
             auditLogService.addAuditLog(currentUser, ActionType.SUBMIT_READING_METER);
         }catch (MeterTypeException e){
             System.out.println(e.getMessage());
@@ -119,8 +112,11 @@ public class UserConsole implements ConsoleInterface {
         int year = scanner.nextInt();
 
         try {
-            MetersReadings metersReadings = meterReadingService.getMetersReadingsBySpecificMonth(currentUser.getLogin(), month, year);
-            System.out.println(metersReadings);
+            List<MeterReading> metersReadings = meterReadingService.getMetersReadingsBySpecificDate(currentUser.getId(), month, year);
+            System.out.println("Meters Readings " + month + "th month of " + year + ": ");
+            for (MeterReading meterReading : metersReadings){
+                System.out.println("-> " + meterReading);
+            }
         }catch (MeterReadingException e){
             System.out.println(e.getMessage());
             showMainMenu();
@@ -130,9 +126,9 @@ public class UserConsole implements ConsoleInterface {
     private void showHistory() {
         System.out.println("------- Your history of adding meters readings -------");
         try{
-            List<MetersReadings> metersReadingsUser = meterReadingService.getMetersReadingsByUser(currentUser.getLogin());
-            for (MetersReadings metersReadings : metersReadingsUser){
-                System.out.println(metersReadings);
+            List<MeterReading> meterReadingUser = meterReadingService.getAllMetersReadingsUser(currentUser.getId());
+            for (MeterReading meterReading : meterReadingUser){
+                System.out.println(meterReading);
             }
             auditLogService.addAuditLog(currentUser, ActionType.METERS_READINGS_VIEW);
         }catch (MeterReadingException e){

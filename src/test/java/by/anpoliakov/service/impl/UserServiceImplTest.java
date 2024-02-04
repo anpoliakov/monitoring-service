@@ -37,7 +37,7 @@ class UserServiceImplTest {
         String password = "testPassword";
         RoleType role = RoleType.USER;
 
-        actualUser = new User(name, login, password, role);
+        actualUser = new User(login, password, role);
         repoUser.add(actualUser);
     }
 

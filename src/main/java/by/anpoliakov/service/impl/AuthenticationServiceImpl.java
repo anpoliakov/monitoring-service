@@ -40,12 +40,12 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     /**
      * Регистрация нового пользователя
      * */
-    public User register(String name, String login, String password) throws AuthenticationException {
-        if(name == null || login == null || password == null || name.isEmpty() || login.isEmpty() || password.isEmpty()){
+    public User register(String login, String password) throws AuthenticationException {
+        if(login == null || password == null || login.isEmpty() || password.isEmpty()){
             throw new AuthenticationException("Field/Fields cannot be empty!");
         }
 
-        Optional<User> optionalUser = userRepository.add(new User(name, login, password, RoleType.USER));
+        Optional<User> optionalUser = userRepository.add(new User(login, password, RoleType.USER));
         if(optionalUser.isEmpty()){
             throw new AuthenticationException("User already exist!");
         }

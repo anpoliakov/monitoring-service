@@ -1,4 +1,4 @@
-package by.anpoliakov.infrastructure;
+package by.anpoliakov.infrastructure.in;
 
 import java.util.NoSuchElementException;
 import java.util.Scanner;

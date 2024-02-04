@@ -20,5 +20,5 @@ public interface AuthenticationService {
      * @param login - логин нового пользователя
      * @param password - пароль нового пользователя
      * */
-    User register(String name, String login, String password);
+    User register(String login, String password);
 }

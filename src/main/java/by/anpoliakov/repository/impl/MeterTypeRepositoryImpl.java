@@ -1,22 +1,24 @@
 package by.anpoliakov.repository.impl;
 
 import by.anpoliakov.domain.entity.MeterType;
+import by.anpoliakov.infrastructure.constant.ConstantsSQL;
 import by.anpoliakov.repository.MeterTypeRepository;
+import by.anpoliakov.util.ConnectionManager;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.math.BigInteger;
+import java.sql.*;
+import java.util.*;
 
-/** Класс для проверки/регистрации новых типов счетчиков */
+/** Реализация интерфейса MeterTypeRepository и
+ * предоставляет методы для взаимодействия с таблицей meters_types в БД */
 public class MeterTypeRepositoryImpl implements MeterTypeRepository {
     private static MeterTypeRepository instance;
-    private static Map<String, MeterType> metersTypes;
+    private Connection connection = null;
+    private PreparedStatement pst = null;
+    private ResultSet rs = null;
+    private Statement st = null;
 
-    public MeterTypeRepositoryImpl() {
-        metersTypes = new HashMap<>();
-        installInitialData();
-    }
+    public MeterTypeRepositoryImpl() {}
 
     public static MeterTypeRepository getInstance(){
         if (instance == null){
@@ -27,23 +29,88 @@ public class MeterTypeRepositoryImpl implements MeterTypeRepository {
 
     @Override
     public void add(String typeName) {
-        MeterType meterType = new MeterType(typeName);
-        metersTypes.put(typeName, meterType);
+        try {
+            connection = ConnectionManager.createConnection();
+            connection.setAutoCommit(false);
+
+            pst = connection.prepareStatement (ConstantsSQL.CREATE_METER_TYPE);
+            pst.setString(1, typeName);
+            pst.executeUpdate();
+
+            connection.commit();
+        } catch (SQLException e) {
+            rollBack(connection, e);
+        }finally {
+            ConnectionManager.closeStatement(pst);
+            ConnectionManager.closeConnection();
+        }
     }
 
     @Override
     public Optional<MeterType> getMeterType(String typeName) {
-        return Optional.ofNullable(metersTypes.get(typeName));
+        MeterType meterType = null;
+
+        try {
+            connection = ConnectionManager.createConnection();
+            pst = connection.prepareStatement(ConstantsSQL.SELECT_METER_TYPE);
+            pst.setString(1, typeName);
+            rs = pst.executeQuery();
+
+            while (rs.next()){
+                BigInteger meterTypeId = rs.getBigDecimal(ConstantsSQL.METER_TYPE_ID_LABEL).toBigInteger();
+                String meterTypeName = rs.getString(ConstantsSQL.METER_TYPE_NAME_LABEL);
+
+                meterType = new MeterType(meterTypeId, meterTypeName);
+            }
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        } finally {
+            ConnectionManager.closeResultSet(rs);
+            ConnectionManager.closeStatement(pst);
+            ConnectionManager.closeConnection();
+        }
+
+        return Optional.ofNullable(meterType);
     }
 
     @Override
     public Optional<List<String>> getNamesMetersTypes(){
-        return Optional.ofNullable(metersTypes.keySet().stream().toList());
+        List <String> names = null;
+
+        try {
+            connection = ConnectionManager.createConnection();
+            st = connection.createStatement();
+            rs = st.executeQuery(ConstantsSQL.SELECT_ALL_METERS_TYPES);
+            names = new ArrayList<>();
+
+            while (rs.next()){
+                String meterTypeName = rs.getString(ConstantsSQL.METER_TYPE_NAME_LABEL);
+                names.add(meterTypeName);
+            }
+
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        } finally {
+            ConnectionManager.closeResultSet(rs);
+            ConnectionManager.closeStatement(st);
+            ConnectionManager.closeConnection();
+        }
+
+        return Optional.ofNullable(names);
     }
 
-    private void installInitialData(){
-        metersTypes.put("Cold water meter", new MeterType("Cold water meter"));
-        metersTypes.put("Hot water meter", new MeterType("Hot water meter"));
-        metersTypes.put("Heating meter", new MeterType("Heating meter"));
+    /**
+     * Метод для отмены транзакции
+     * */
+    private void rollBack(Connection connection, SQLException e){
+        System.err.println("Произошла ошибка: " + e.getMessage());
+        if (connection != null) {
+            try {
+                connection.rollback();
+                System.err.println("Транзакция отменена.");
+            } catch (SQLException rollbackException) {
+                System.err.println("Ошибка при откате транзакции: " + rollbackException.getMessage());
+            }
+        }
     }
 }
