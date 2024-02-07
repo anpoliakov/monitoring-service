@@ -1,6 +1,8 @@
 package by.anpoliakov.domain.enums;
 
-/** Перечисления действий пользователя, используются при аудите */
+/**
+ * Перечисления действий пользователя, используются при аудите
+ */
 public enum ActionType {
     REGISTRATION,
     AUTHORIZATION,

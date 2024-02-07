@@ -1,17 +1,20 @@
-package by.anpoliakov.infrastructure;
+package by.anpoliakov.infrastructure.in;
 
 import java.util.NoSuchElementException;
 import java.util.Scanner;
 
-/** Общий интерфейс для реализаций консолей пользователей */
+/**
+ * Общий интерфейс для реализаций консолей пользователей
+ */
 public interface ConsoleInterface {
     void showMainMenu();
 
     /**
      * Метод для получения пользовательского ввода
      *
-     * @return число int - номер выбранного меню */
-    default int getInputNumberMenu(){
+     * @return число int - номер выбранного меню
+     */
+    default int getInputNumberMenu() {
         Scanner scanner = new Scanner(System.in);
         int choice = -1;
 
@@ -20,7 +23,7 @@ public interface ConsoleInterface {
                 choice = scanner.nextInt();
                 scanner.nextLine();
             }
-        }catch (NoSuchElementException e){
+        } catch (NoSuchElementException e) {
             choice = -1;
         }
 

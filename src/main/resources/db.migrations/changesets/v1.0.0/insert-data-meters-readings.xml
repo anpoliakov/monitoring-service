@@ -1,0 +1,30 @@
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.10.xsd">
+
+    <changeSet id="insert-data-meters-readings" author="anpoliakov">
+
+        <insert tableName="meters_readings" schemaName="entities">
+            <column name="user_id" value="2"/>
+            <column name="meter_type_id" value="1"/>
+            <column name="reading" value="1502"/>
+            <column name="date" value="2024-01-29 22:05:06"/>
+        </insert>
+
+        <insert tableName="meters_readings" schemaName="entities">
+            <column name="user_id" value="2"/>
+            <column name="meter_type_id" value="2"/>
+            <column name="reading" value="1306"/>
+            <column name="date" value="2024-01-29 23:05:06"/>
+        </insert>
+
+        <insert tableName="meters_readings" schemaName="entities">
+            <column name="user_id" value="2"/>
+            <column name="meter_type_id" value="3"/>
+            <column name="reading" value="255"/>
+            <column name="date" value="2024-01-29 21:05:06"/>
+        </insert>
+
+    </changeSet>
+</databaseChangeLog>

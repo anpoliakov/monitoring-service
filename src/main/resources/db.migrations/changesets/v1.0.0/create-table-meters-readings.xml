@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.10.xsd">
+
+    <changeSet id="create-table-meters-readings" author="anpoliakov">
+        <createTable tableName="meters_readings" schemaName="entities">
+            <column name="meter_reading_id" type="BIGINT" >
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+
+            <column name="user_id" type="BIGINT" >
+                <constraints nullable="false"/>
+            </column>
+
+
+            <column name="meter_type_id" type="BIGINT" >
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="reading" type="BIGINT" >
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="date" type="TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <createSequence sequenceName="sequence_meters_readings_id" startValue="1" incrementBy="1" schemaName="entities"/>
+        <addDefaultValue tableName="meters_readings" schemaName="entities" columnName="meter_reading_id" columnDataType="BIGINT" defaultValueSequenceNext="sequence_meters_readings_id"/>
+    </changeSet>
+
+</databaseChangeLog>

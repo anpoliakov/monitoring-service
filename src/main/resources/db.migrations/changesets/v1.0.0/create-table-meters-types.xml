@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.10.xsd">
+
+    <changeSet id="create-table-meters-types.xml" author="anpoliakov">
+        <createTable tableName="meters_types" schemaName="entities" >
+            <column name="meter_type_id" type="BIGINT">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+
+            <column name="name" type="VARCHAR(25)">
+                <constraints unique="true" nullable="false"/>
+            </column>
+        </createTable>
+
+        <createSequence sequenceName="sequence_meter_type_id" startValue="1" incrementBy="1" schemaName="entities"/>
+        <addDefaultValue tableName="meters_types" schemaName="entities" columnName="meter_type_id" columnDataType="BIGINT" defaultValueSequenceNext="sequence_meter_type_id"/>
+
+    </changeSet>
+
+</databaseChangeLog>

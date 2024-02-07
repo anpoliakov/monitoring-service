@@ -1,20 +1,33 @@
 package by.anpoliakov.domain.entity;
 
 import by.anpoliakov.domain.enums.ActionType;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.math.BigInteger;
 import java.time.LocalDateTime;
 
 @Setter
 @Getter
-@AllArgsConstructor
-/** Класс представляет собой аудит действия пользовател */
+/** Класс представляет собой аудит действия пользователя */
 public class AuditLog {
-    private User user;
+    private BigInteger id;
+    private String loginUser;
     private LocalDateTime date;
     private ActionType actionType;
+
+    public AuditLog(BigInteger id, String loginUser, LocalDateTime date, ActionType actionType) {
+        this.id = id;
+        this.loginUser = loginUser;
+        this.date = date;
+        this.actionType = actionType;
+    }
+
+    public AuditLog(String loginUser, LocalDateTime date, ActionType actionType) {
+        this.loginUser = loginUser;
+        this.date = date;
+        this.actionType = actionType;
+    }
 
     @Override
     public String toString() {

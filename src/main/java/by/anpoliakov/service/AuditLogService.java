@@ -5,10 +5,13 @@ import by.anpoliakov.domain.entity.User;
 import by.anpoliakov.domain.enums.ActionType;
 
 import java.util.List;
-import java.util.Map;
 
+/**
+ * Интерфейс определяющий сигнатуры методов для
+ * добавления
+ */
 public interface AuditLogService {
     void addAuditLog(User user, ActionType actionType);
-    Map<java.lang.String, List<AuditLog>> getAllAuditLogs();
-    List<AuditLog> getAuditLogsByUser(User user);
+
+    List<AuditLog> getAuditLogsByLogin(String loginUser);
 }

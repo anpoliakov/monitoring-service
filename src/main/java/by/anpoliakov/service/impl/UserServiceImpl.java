@@ -16,12 +16,12 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User getByLogin(String loginUser) throws UserException {
-        if(loginUser.trim().isEmpty() || loginUser == null){
+        if (loginUser.trim().isEmpty() || loginUser == null) {
             throw new UserException("Login's user is empty or null");
         }
 
-        Optional<User> user = userRepository.getByLogin(loginUser);
-        if(user.isEmpty()){
+        Optional<User> user = userRepository.findByLogin(loginUser);
+        if (user.isEmpty()) {
             throw new UserException("User by login " + loginUser + " doesn't exist!");
         }
 
@@ -30,25 +30,31 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public Map<String, User> getAllUsers() {
-        return userRepository.getAllUsers();
+        Map<String, User> allUsers = userRepository.findAllUsers();
+        if (allUsers == null) {
+            throw new UserException("Database does not contain users!");
+        }
+
+        return userRepository.findAllUsers();
     }
 
     @Override
     public void changeUserRole(User user, RoleType roleType) throws UserException {
-        if(user == null || roleType == null){
+        if (user == null || roleType == null) {
             throw new UserException("User of Role are null");
         }
 
-        Optional<User> optionalUser = userRepository.getByLogin(user.getLogin());
-        if(optionalUser.isEmpty()){
+        Optional<User> optionalUser = userRepository.findByLogin(user.getLogin());
+        if (optionalUser.isEmpty()) {
             throw new UserException("User is not exist!");
         }
 
         User exitUser = optionalUser.get();
-        if(exitUser.getRoleType().compareTo(roleType) == 0){
+        if (exitUser.getRoleType().compareTo(roleType) == 0) {
             throw new UserException("The user already has this role installed!");
         }
 
+        userRepository.updateRoleUser(user, roleType);
         exitUser.setRoleType(roleType);
     }
 }

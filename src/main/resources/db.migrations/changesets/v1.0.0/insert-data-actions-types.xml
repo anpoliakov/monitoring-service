@@ -1,0 +1,29 @@
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.10.xsd">
+
+    <changeSet id="insert-data-actions-types" author="anpoliakov">
+
+        <insert tableName="actions_types" schemaName="entities">
+            <column name="name" value="REGISTRATION"/>
+        </insert>
+
+        <insert tableName="actions_types" schemaName="entities">
+            <column name="name" value="AUTHORIZATION"/>
+        </insert>
+
+        <insert tableName="actions_types" schemaName="entities">
+            <column name="name" value="SUBMIT_READING_METER"/>
+        </insert>
+
+        <insert tableName="actions_types" schemaName="entities">
+            <column name="name" value="METERS_READINGS_VIEW"/>
+        </insert>
+
+        <insert tableName="actions_types" schemaName="entities">
+            <column name="name" value="WORK_COMPLETION"/>
+        </insert>
+
+    </changeSet>
+</databaseChangeLog>

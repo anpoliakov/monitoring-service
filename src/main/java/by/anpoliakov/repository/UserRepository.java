@@ -1,24 +1,29 @@
 package by.anpoliakov.repository;
 
 import by.anpoliakov.domain.entity.User;
+import by.anpoliakov.domain.enums.RoleType;
 
 import java.util.Map;
 import java.util.Optional;
 
 /**
  * Интерфейс определяющий сигнатуры методов CRUD операций с объектами типа User
- * */
+ */
 public interface UserRepository {
     /**
      * Добавление нового пользователя
      */
-    Optional<User> add(User user);
+    Optional<User> create(User user);
 
     /**
      * Получение пользователя по логину
      */
-    Optional<User> getByLogin(String login);
+    Optional<User> findByLogin(String login);
 
-    /** Получение всех пользователей */
-    Map<String, User> getAllUsers();
+    /**
+     * Получение всех пользователей
+     */
+    Map<String, User> findAllUsers();
+
+    boolean updateRoleUser(User user, RoleType role);
 }

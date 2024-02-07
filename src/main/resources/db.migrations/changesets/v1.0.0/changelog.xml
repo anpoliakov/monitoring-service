@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+         https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.5.xsd"
+        logicalFilePath="db/changelog.xml">
+
+    <!-- локальный changelog файл, прописываем порядок загрузки changesets -->
+    <include file="create-schema.xml" relativeToChangelogFile="true"/>
+
+    <include file="create-table-actions-types.xml" relativeToChangelogFile="true"/>
+    <include file="create-table-roles-types.xml" relativeToChangelogFile="true"/>
+    <include file="create-table-users.xml" relativeToChangelogFile="true"/>
+    <include file="create-table-meters-types.xml" relativeToChangelogFile="true"/>
+    <include file="create-table-meters-readings.xml" relativeToChangelogFile="true"/>
+    <include file="create-table-audit-logs.xml" relativeToChangelogFile="true"/>
+
+    <include file="create-fk-key-users-roles-types.xml" relativeToChangelogFile="true"/>
+    <include file="create-fk-key-meters-readings-user.xml" relativeToChangelogFile="true"/>
+    <include file="create-fk-key-meters-readings-meter-type.xml" relativeToChangelogFile="true"/>
+    <include file="create-fk-key-audit-logs-users.xml" relativeToChangelogFile="true"/>
+    <include file="create-fk-key-audit-logs-actions-types.xml" relativeToChangelogFile="true"/>
+
+    <include file="insert-data-actions-types.xml" relativeToChangelogFile="true"/>
+    <include file="insert-data-roles-types.xml" relativeToChangelogFile="true"/>
+    <include file="insert-data-users.xml" relativeToChangelogFile="true"/>
+    <include file="insert-data-meters-types.xml" relativeToChangelogFile="true"/>
+    <include file="insert-data-meters-readings.xml" relativeToChangelogFile="true"/>
+
+    <include file="insert-data-audit-logs.xml" relativeToChangelogFile="true"/>
+</databaseChangeLog>

@@ -10,7 +10,6 @@ import lombok.AllArgsConstructor;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 @AllArgsConstructor
@@ -19,20 +18,15 @@ public class AuditLogServiceImpl implements AuditLogService {
 
     @Override
     public void addAuditLog(User user, ActionType actionType) {
-        AuditLog auditLog = new AuditLog(user, LocalDateTime.now(), actionType);
-        auditLogRepository.add(auditLog);
+        AuditLog auditLog = new AuditLog(user.getLogin(), LocalDateTime.now(), actionType);
+        auditLogRepository.create(auditLog);
     }
 
     @Override
-    public Map<String, List<AuditLog>> getAllAuditLogs() {
-        return auditLogRepository.getAllAuditLogs();
-    }
-
-    @Override
-    public List<AuditLog> getAuditLogsByUser(User user) throws AuditLogException {
-        Optional<List<AuditLog>> optionalAuditLogList = auditLogRepository.getAuditLogsByUser(user);
-        if(optionalAuditLogList.isEmpty()){
-            throw new AuditLogException("No actions from the user - " + user.getName());
+    public List<AuditLog> getAuditLogsByLogin(String loginUser) throws AuditLogException {
+        Optional<List<AuditLog>> optionalAuditLogList = auditLogRepository.findAuditLogsByLogin(loginUser);
+        if (optionalAuditLogList.isEmpty()) {
+            throw new AuditLogException("No actions from the user - " + loginUser);
         }
 
         return optionalAuditLogList.get();

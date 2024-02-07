@@ -1,0 +1,21 @@
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.10.xsd">
+
+    <changeSet id="insert-data-meters-types" author="anpoliakov">
+
+        <insert tableName="meters_types" schemaName="entities">
+            <column name="name" value="Cold water meter"/>
+        </insert>
+
+        <insert tableName="meters_types" schemaName="entities">
+            <column name="name" value="Hot water meter"/>
+        </insert>
+
+        <insert tableName="meters_types" schemaName="entities">
+            <column name="name" value="Heating meter"/>
+        </insert>
+
+    </changeSet>
+</databaseChangeLog>
