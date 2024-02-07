@@ -10,7 +10,7 @@ import java.util.Properties;
 
 /**
  * Класс реализованный по паттерну singleton предоставляет Connection к базе данных
- * так же занимается закрытием: Connection, Statement, ResultSet
+ * и занимается закрытием: Connection, Statement, ResultSet
  * */
 public class ConnectionManager {
     private static Connection conn = null;
@@ -25,6 +25,11 @@ public class ConnectionManager {
 
     private ConnectionManager() {}
 
+    /**
+     * Метод выдаёт объект, отвечающий за соединение с базой данных
+     *
+     * @return объект Connection
+     * */
     public static Connection createConnection (){
         try {
             if(conn == null || conn.isClosed()){
@@ -38,13 +43,15 @@ public class ConnectionManager {
         }catch (SQLException e){
             e.printStackTrace();
         }catch (NullPointerException e){
-            //TODO: исправить
-            System.err.println("Проверьте наличие необходимых ключей=значений в файле database.properties");
+            e.printStackTrace();
         }
 
         return conn;
     }
 
+    /**
+     * Метод для закрытия Connection
+     * */
     public static void closeConnection() {
         if (conn != null) {
             try {
@@ -55,26 +62,39 @@ public class ConnectionManager {
         }
     }
 
-    public static void closeStatement(Statement st) {
-        if (st != null) {
+    /**
+     * Метод для закрытия Statement
+     * */
+    public static void closeStatement(Statement statement) {
+        if (statement != null) {
             try {
-                st.close();
+                statement.close();
             } catch (SQLException e) {
                 e.printStackTrace();
             }
         }
     }
 
-    public static void closeResultSet(ResultSet rs) {
-        if (rs != null) {
+    /**
+     * Метод для закрытия ResultSet
+     * */
+    public static void closeResultSet(ResultSet resultSet) {
+        if (resultSet != null) {
             try {
-                rs.close();
+                resultSet.close();
             } catch (SQLException e) {
                 e.printStackTrace();
             }
         }
     }
 
+    /**
+     * Метод предоставляющий класс Properties для взаимодействия с
+     * файлом настроек подключения к бд
+     *
+     * @return Properties - объект для работы с файлом properties
+     * путь к файлу прописан в статическом классе констант - PATH_TO_DB_PROPERTIES
+     * */
     private static Properties loadDatabaseProperties(){
         Properties properties = null;
 
@@ -94,7 +114,6 @@ public class ConnectionManager {
     /**
      * Метод для отмены транзакции
      * */
-    //TODO в процессе поправки Exception
     public static void rollBack(Connection connection){
         if (connection != null) {
             try {

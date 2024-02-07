@@ -23,6 +23,9 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
 
+/**
+ * Входная точка приложения
+ * */
 public class RunnerApplication {
     public static void main(String[] args) {
         prepareDataBase();
@@ -37,6 +40,9 @@ public class RunnerApplication {
         mainConsole.showMainMenu();
     }
 
+    /**
+     * Метод для выполнения миграций с помощью Liquibase
+     * */
     public static void prepareDataBase(){
         createSystemSchemeLiquibase();
         Database database = null;
@@ -62,10 +68,14 @@ public class RunnerApplication {
         }
     }
 
+    /**
+     * Создание схемы в БД - для хранения системных таблиц liquibase
+     * */
     private static void createSystemSchemeLiquibase(){
         Connection connection = ConnectionManager.createConnection();
+
         try (Statement st = connection.createStatement()){
-            st.execute("CREATE SCHEMA IF NOT EXISTS " + ConstantsSQL.NAME_SYSTEM_SCHEMA_LIQUIBASE);
+            st.execute(ConstantsSQL.CREATE_SCHEMA + ConstantsSQL.NAME_SYSTEM_SCHEMA_LIQUIBASE);
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }finally {

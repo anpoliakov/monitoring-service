@@ -17,7 +17,7 @@ public class MeterTypeServiceImpl implements MeterTypeService {
     private MeterTypeRepository repoMeterType;
 
     @Override
-    public void addMeterType(String typeName) throws MeterTypeException {
+    public MeterType addMeterType(String typeName) throws MeterTypeException {
 
         if(typeName.trim().isEmpty() || typeName == null){
             throw new MeterTypeException("Incorrect name of type meter!");
@@ -28,7 +28,7 @@ public class MeterTypeServiceImpl implements MeterTypeService {
             throw new MeterTypeException("This meter already exists in the database!");
         }
 
-        repoMeterType.add(typeName);
+        return repoMeterType.add(typeName).get();
     }
 
     @Override
@@ -48,12 +48,11 @@ public class MeterTypeServiceImpl implements MeterTypeService {
     @Override
     public List<String> getNamesMetersTypes() throws MeterTypeException {
         Optional<List<String>> namesMetersTypes = repoMeterType.getNamesMetersTypes();
+
         if(namesMetersTypes.isEmpty()){
             throw new MeterTypeException("There are no meters types in the database!");
         }
 
         return namesMetersTypes.get();
     }
-
-
 }

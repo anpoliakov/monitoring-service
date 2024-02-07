@@ -1,7 +1,7 @@
 package by.anpoliakov.infrastructure.constant;
 
 /**
- * Класс с константными значениями, которые применяются в приложении
+ * Класс содержащий константы использующиеся в приложении
  * */
 public class Constants {
     public static final String PATH_TO_DB_PROPERTIES = "src/main/resources/settingsDataBase/database.properties";

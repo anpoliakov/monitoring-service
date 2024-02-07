@@ -1,6 +1,7 @@
 package by.anpoliakov.repository.impl;
 
 import by.anpoliakov.domain.entity.MeterType;
+import by.anpoliakov.exception.MeterTypeException;
 import by.anpoliakov.infrastructure.constant.ConstantsSQL;
 import by.anpoliakov.repository.MeterTypeRepository;
 import by.anpoliakov.util.ConnectionManager;
@@ -28,7 +29,7 @@ public class MeterTypeRepositoryImpl implements MeterTypeRepository {
     }
 
     @Override
-    public void add(String typeName) {
+    public Optional<MeterType> add(String typeName) {
         try {
             connection = ConnectionManager.createConnection();
             connection.setAutoCommit(false);
@@ -36,14 +37,16 @@ public class MeterTypeRepositoryImpl implements MeterTypeRepository {
             pst = connection.prepareStatement (ConstantsSQL.CREATE_METER_TYPE);
             pst.setString(1, typeName);
             pst.executeUpdate();
-
             connection.commit();
+
         } catch (SQLException e) {
             ConnectionManager.rollBack(connection);
         }finally {
             ConnectionManager.closeStatement(pst);
             ConnectionManager.closeConnection();
         }
+
+        return getMeterType(typeName);
     }
 
     @Override
