@@ -6,6 +6,8 @@ import java.util.List;
 
 public interface MeterTypeService {
     MeterType addMeterType(String typeName);
+
     MeterType getMeterType(String typeName);
+
     List<String> getNamesMetersTypes();
 }

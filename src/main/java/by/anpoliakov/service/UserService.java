@@ -7,6 +7,8 @@ import java.util.Map;
 
 public interface UserService {
     User getByLogin(String loginUser);
+
     Map<String, User> getAllUsers();
+
     void changeUserRole(User user, RoleType roleType);
 }

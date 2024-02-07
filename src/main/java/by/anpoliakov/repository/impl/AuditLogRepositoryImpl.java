@@ -13,63 +13,61 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-/** Реализация интерфейса AuditLogRepository и
- * предоставляет методы для взаимодействия с таблицей audit_logs в БД */
+/**
+ * Реализация интерфейса AuditLogRepository и
+ * предоставляет методы для взаимодействия с таблицей audit_logs в БД
+ */
 public class AuditLogRepositoryImpl implements AuditLogRepository {
     private static AuditLogRepository instance;
-    private Connection connection = null;
-    private PreparedStatement pst = null;
-    private ResultSet rs = null;
 
-    private AuditLogRepositoryImpl() {}
+    private AuditLogRepositoryImpl() {
+    }
 
-    public static AuditLogRepository getInstance(){
-        if (instance == null){
+    public static AuditLogRepository getInstance() {
+        if (instance == null) {
             instance = new AuditLogRepositoryImpl();
         }
         return instance;
     }
 
-    /** Метод для добавления сущности AuditLog в базу данных */
+    /**
+     * Метод для добавления сущности AuditLog в базу данных
+     */
     @Override
-    public void add(AuditLog auditLog) {
-        try {
-            connection = ConnectionManager.createConnection();
+    public void create(AuditLog auditLog) {
+        try (Connection connection = ConnectionManager.createConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(ConstantsSQL.CREATE_AUDIT_LOG)) {
+
             connection.setAutoCommit(false);
-
-            pst = connection.prepareStatement (ConstantsSQL.CREATE_AUDIT_LOG);
-            pst.setString(1, auditLog.getLoginUser());
-            pst.setTimestamp(2, Timestamp.valueOf(auditLog.getDate()));
-            pst.setString(3, auditLog.getActionType().name());
-            pst.executeUpdate();
-
+            preparedStatement.setString(1, auditLog.getLoginUser());
+            preparedStatement.setTimestamp(2, Timestamp.valueOf(auditLog.getDate()));
+            preparedStatement.setString(3, auditLog.getActionType().name());
+            preparedStatement.executeUpdate();
             connection.commit();
+
         } catch (SQLException e) {
-            ConnectionManager.rollBack(connection);
-        }finally {
-            ConnectionManager.closeStatement(pst);
-            ConnectionManager.closeConnection();
+            System.out.println(e.getMessage());
         }
     }
 
     @Override
-    public Optional<List<AuditLog>> getAuditLogsByLogin(String loginUser) {
-        List <AuditLog> auditLogs = null;
+    public Optional<List<AuditLog>> findAuditLogsByLogin(String loginUser) {
+        List<AuditLog> auditLogs = null;
+        ResultSet resultSet = null;
 
-        try {
-            connection = ConnectionManager.createConnection();
+        try (Connection connection = ConnectionManager.createConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(ConstantsSQL.SELECT_AUDIT_LOGS_BY_LOGIN)) {
 
-            pst = connection.prepareStatement(ConstantsSQL.SELECT_AUDIT_LOGS_BY_LOGIN);
-            pst.setString(1, loginUser);
-            rs = pst.executeQuery();
+            preparedStatement.setString(1, loginUser);
+            resultSet = preparedStatement.executeQuery();
             auditLogs = new ArrayList<>();
 
-            while (rs.next()){
-                BigInteger auditLogId = rs.getBigDecimal(ConstantsSQL.AUDIT_LOG_ID_LABEL).toBigInteger();
-                Timestamp timestamp = rs.getTimestamp(ConstantsSQL.AUDIT_LOG_DATE_LABEL);
+            while (resultSet.next()) {
+                BigInteger auditLogId = resultSet.getBigDecimal(ConstantsSQL.AUDIT_LOG_ID_LABEL).toBigInteger();
+                Timestamp timestamp = resultSet.getTimestamp(ConstantsSQL.AUDIT_LOG_DATE_LABEL);
                 LocalDateTime date = timestamp.toLocalDateTime();
-                String login = rs.getString(ConstantsSQL.USER_LOGIN_LABEL);
-                ActionType action = ActionType.valueOf(rs.getString(ConstantsSQL.ACTION_TYPE_NAME_LABEL));
+                String login = resultSet.getString(ConstantsSQL.USER_LOGIN_LABEL);
+                ActionType action = ActionType.valueOf(resultSet.getString(ConstantsSQL.ACTION_TYPE_NAME_LABEL));
 
                 auditLogs.add(new AuditLog(auditLogId, login, date, action));
             }
@@ -77,9 +75,7 @@ public class AuditLogRepositoryImpl implements AuditLogRepository {
         } catch (SQLException e) {
             System.out.println(e.getMessage());
         } finally {
-            ConnectionManager.closeResultSet(rs);
-            ConnectionManager.closeStatement(pst);
-            ConnectionManager.closeConnection();
+            ConnectionManager.closeResultSet(resultSet);
         }
 
         return Optional.ofNullable(auditLogs);

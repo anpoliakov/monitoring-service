@@ -20,8 +20,6 @@ import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class MeterTypeServiceImplTest {
-    private final MeterType METER_TYPE_OBJECT = new MeterType("cold water meter");
-
     @InjectMocks
     private MeterTypeServiceImpl meterTypeService;
 
@@ -29,56 +27,63 @@ class MeterTypeServiceImplTest {
     private MeterTypeRepository repoMeterType;
 
     @Test
-    @DisplayName("Meter type exist. Add meter type method - throw MeterTypeException")
-    void addMeterType_ifMeterTypeExistInDb_throwMeterTypeException() {
-        Mockito.when(repoMeterType.getMeterType(anyString()))
-                .thenReturn(Optional.ofNullable(METER_TYPE_OBJECT));
+    @DisplayName("Meter type already exist. Add meter type - throw MeterTypeException")
+    void addMeterType_meterTypeAlreadyExist_throwMeterTypeException() {
+        MeterType meterType = new MeterType("cold water meter");
 
-        assertThrows(MeterTypeException.class, () -> meterTypeService.addMeterType(METER_TYPE_OBJECT.getTypeName()));
+        Mockito.when(repoMeterType.findMeterType(anyString()))
+                .thenReturn(Optional.ofNullable(meterType));
+
+        assertThrows(MeterTypeException.class, () -> meterTypeService.addMeterType(meterType.getTypeName()));
     }
 
     @Test
-    @DisplayName("Meter type was added")
-    void addMeterType_ifMeterTypeAbsentInDb_MeterTypeShouldAdded() {
-        Mockito.when(repoMeterType.add(anyString()))
-                .thenReturn(Optional.ofNullable(METER_TYPE_OBJECT));
+    @DisplayName("Meter type successfully added")
+    void addMeterType_meterTypeAbsent_meterTypeShouldAdded() {
+        MeterType meterType = new MeterType("cold water meter");
 
-        MeterType meterType = meterTypeService.addMeterType(METER_TYPE_OBJECT.getTypeName());
-        Assertions.assertEquals(meterType, METER_TYPE_OBJECT);
+        Mockito.when(repoMeterType.create(anyString()))
+                .thenReturn(Optional.ofNullable(meterType));
+
+        MeterType actualMeterType = meterTypeService.addMeterType(meterType.getTypeName());
+
+        Assertions.assertEquals(meterType, actualMeterType);
+        Mockito.verify(repoMeterType, Mockito.times(1)).create(meterType.getTypeName());
     }
 
     @Test
-    @DisplayName("Meter type absent. Get meter type method - throw MeterTypeException")
-    void getMeterType_ifMeterTypeAbsent_throwMeterTypeException() {
-        Mockito.when(repoMeterType.getMeterType(anyString()))
+    @DisplayName("Meter type absent. Method for get meter type - throw MeterTypeException")
+    void getMeterType_meterTypeAbsent_throwMeterTypeException() {
+        Mockito.when(repoMeterType.findMeterType(anyString()))
                 .thenReturn(Optional.ofNullable(null));
 
         assertThrows(MeterTypeException.class, () -> meterTypeService.getMeterType("some name"));
     }
 
     @Test
-    @DisplayName("Get meter type method - should return object MeterType")
+    @DisplayName("Method for get meter type - should return object MeterType")
     void getMeterType_shouldReturnMeterType() {
-        String typeName = METER_TYPE_OBJECT.getTypeName();
-        Mockito.when(repoMeterType.getMeterType(typeName)).thenReturn(Optional.ofNullable(METER_TYPE_OBJECT));
+        MeterType meterType = new MeterType("cold water meter");
+        Mockito.when(repoMeterType.findMeterType(meterType.getTypeName())).thenReturn(Optional.ofNullable(meterType));
 
-        MeterType meterType = meterTypeService.getMeterType(typeName);
-        Assertions.assertEquals(meterType.getTypeName(), METER_TYPE_OBJECT.getTypeName());
+        MeterType actualMeterType = meterTypeService.getMeterType(meterType.getTypeName());
+        Assertions.assertEquals(meterType.getTypeName(), actualMeterType.getTypeName());
     }
 
     @Test
-    @DisplayName("Method for getting all string names - return list")
-    void getNamesMetersTypes_shouldReturnListNamesOfMeter() {
+    @DisplayName("Method for get all string names - return list names")
+    void getNamesMetersTypes_shouldReturnListNamesOfMeters() {
         List<String> actualList = Arrays.asList("Test name one", "Test name two");
-        when(repoMeterType.getNamesMetersTypes()).thenReturn(Optional.of(actualList));
+        when(repoMeterType.getNamesMetersTypes()).thenReturn(Optional.ofNullable(actualList));
 
         List<String> expectedList = meterTypeService.getNamesMetersTypes();
         Assertions.assertEquals(expectedList, actualList);
     }
 
     @Test
-    @DisplayName("Method for getting all string names - throw MeterTypeException")
-    void getNamesMetersTypes_ifAbsentMetersTypes_throwMeterTypeException() {
-        //TODO сегодня добить + тесты по ост классам
+    @DisplayName("Method for get all string names empty database - throw MeterTypeException")
+    void getNamesMetersTypes_metersTypesAbsent_throwMeterTypeException() {
+        when(repoMeterType.getNamesMetersTypes()).thenReturn(Optional.ofNullable(null));
+        assertThrows(MeterTypeException.class, () -> meterTypeService.getNamesMetersTypes());
     }
 }

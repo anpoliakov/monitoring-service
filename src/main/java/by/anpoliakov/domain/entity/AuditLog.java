@@ -1,7 +1,6 @@
 package by.anpoliakov.domain.entity;
 
 import by.anpoliakov.domain.enums.ActionType;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 

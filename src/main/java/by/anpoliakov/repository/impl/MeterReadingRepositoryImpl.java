@@ -12,61 +12,58 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-/** Реализация интерфейса MeterReadingRepository и
- * предоставляет методы для взаимодействия с таблицей meters_readings в БД */
+/**
+ * Реализация интерфейса MeterReadingRepository и
+ * предоставляет методы для взаимодействия с таблицей meters_readings в БД
+ */
 public class MeterReadingRepositoryImpl implements MeterReadingRepository {
     private static MeterReadingRepository instance;
-    private Connection connection = null;
-    private PreparedStatement pst = null;
-    private ResultSet rs = null;
 
-    private MeterReadingRepositoryImpl() {}
+    private MeterReadingRepositoryImpl() {
+    }
 
-    public static MeterReadingRepository getInstance(){
-        if (instance == null){
+    public static MeterReadingRepository getInstance() {
+        if (instance == null) {
             instance = new MeterReadingRepositoryImpl();
         }
         return instance;
     }
 
     @Override
-    public void add(MeterReading meterReading) {
-        try {
-            connection = ConnectionManager.createConnection();
+    public void create(MeterReading meterReading) {
+        try (Connection connection = ConnectionManager.createConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(ConstantsSQL.CREATE_METERS_READINGS)) {
+
             connection.setAutoCommit(false);
-            pst = connection.prepareStatement (ConstantsSQL.CREATE_METERS_READINGS);
-
-            pst.setObject(1, meterReading.getUserId());
-            pst.setObject(2, meterReading.getMeterTypeId());
-            pst.setInt(3, meterReading.getReadings());
-            pst.setTimestamp(4, Timestamp.valueOf(meterReading.getDate()));
-
-            pst.executeUpdate();
+            preparedStatement.setObject(1, meterReading.getUserId());
+            preparedStatement.setObject(2, meterReading.getMeterTypeId());
+            preparedStatement.setInt(3, meterReading.getReadings());
+            preparedStatement.setTimestamp(4, Timestamp.valueOf(meterReading.getDate()));
+            preparedStatement.executeUpdate();
             connection.commit();
+
         } catch (SQLException e) {
-            ConnectionManager.rollBack(connection);
-        }finally {
-            ConnectionManager.closeStatement(pst);
-            ConnectionManager.closeConnection();
+            System.out.println(e.getMessage());
         }
     }
 
     @Override
-    public Optional<List<MeterReading>> getLastMetersReadingsByUserId(BigInteger userId) {
-        List <MeterReading> readings = null;
+    public Optional<List<MeterReading>> findLastMetersReadingsByUserId(BigInteger userId) {
+        ResultSet resultSet = null;
+        List<MeterReading> readings = null;
 
-        try {
-            connection = ConnectionManager.createConnection();
-            pst = connection.prepareStatement(ConstantsSQL.SELECT_LAST_METERS_READINGS_BY_USER_ID);
-            pst.setObject(1, userId);
-            rs = pst.executeQuery();
+        try (Connection connection = ConnectionManager.createConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(ConstantsSQL.SELECT_LAST_METERS_READINGS_BY_USER_ID)) {
+
+            preparedStatement.setObject(1, userId);
+            resultSet = preparedStatement.executeQuery();
             readings = new ArrayList<>();
 
-            while (rs.next()){
-                BigInteger meterReadingId = rs.getBigDecimal(ConstantsSQL.METER_READING_ID_LABEL).toBigInteger();
-                BigInteger meterTypeId = rs.getBigDecimal(ConstantsSQL.METER_TYPE_ID_LABEL).toBigInteger();
-                Integer reading = rs.getInt(ConstantsSQL.METER_READING_READING_LABEL);
-                Timestamp timestamp = rs.getTimestamp(ConstantsSQL.METER_READING_DATE_LABEL);
+            while (resultSet.next()) {
+                BigInteger meterReadingId = resultSet.getBigDecimal(ConstantsSQL.METER_READING_ID_LABEL).toBigInteger();
+                BigInteger meterTypeId = resultSet.getBigDecimal(ConstantsSQL.METER_TYPE_ID_LABEL).toBigInteger();
+                Integer reading = resultSet.getInt(ConstantsSQL.METER_READING_READING_LABEL);
+                Timestamp timestamp = resultSet.getTimestamp(ConstantsSQL.METER_READING_DATE_LABEL);
                 LocalDateTime date = timestamp.toLocalDateTime();
 
                 readings.add(new MeterReading(meterReadingId, userId, meterTypeId, reading, date));
@@ -75,9 +72,7 @@ public class MeterReadingRepositoryImpl implements MeterReadingRepository {
         } catch (SQLException e) {
             System.out.println(e.getMessage());
         } finally {
-            ConnectionManager.closeResultSet(rs);
-            ConnectionManager.closeStatement(pst);
-            ConnectionManager.closeConnection();
+            ConnectionManager.closeResultSet(resultSet);
         }
 
         return Optional.ofNullable(readings);
@@ -85,81 +80,81 @@ public class MeterReadingRepositoryImpl implements MeterReadingRepository {
 
     @Override
     public boolean hasMeterReading(MeterReading meterReading) {
+        ResultSet resultSet = null;
         boolean hasMeterReading = false;
 
-        try {
-            connection = ConnectionManager.createConnection();
-            pst = connection.prepareStatement(ConstantsSQL.HAS_METER_READING);
-            pst.setObject(1, meterReading.getUserId());
-            pst.setObject(2, meterReading.getMeterTypeId());
-            pst.setInt(3, meterReading.getDate().getMonthValue());
-            pst.setInt(4, meterReading.getDate().getYear());
-            rs = pst.executeQuery();
+        try (Connection connection = ConnectionManager.createConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(ConstantsSQL.HAS_METER_READING)) {
 
-            while (rs.next()){
+            preparedStatement.setObject(1, meterReading.getUserId());
+            preparedStatement.setObject(2, meterReading.getMeterTypeId());
+            preparedStatement.setInt(3, meterReading.getDate().getMonthValue());
+            preparedStatement.setInt(4, meterReading.getDate().getYear());
+            resultSet = preparedStatement.executeQuery();
+
+            while (resultSet.next()) {
                 hasMeterReading = true;
             }
         } catch (SQLException e) {
             System.out.println(e.getMessage());
         } finally {
-            ConnectionManager.closeResultSet(rs);
-            ConnectionManager.closeStatement(pst);
-            ConnectionManager.closeConnection();
+            ConnectionManager.closeResultSet(resultSet);
         }
 
         return hasMeterReading;
     }
 
     @Override
-    public Optional<List<MeterReading>> getMetersReadingsBySpecificDate(BigInteger userId, int month, int year) {
-        List <MeterReading> readings = null;
+    public Optional<List<MeterReading>> findMetersReadingsBySpecificDate(BigInteger userId, int month, int year) {
+        ResultSet resultSet = null;
+        List<MeterReading> readings = null;
 
-        try {
-            connection = ConnectionManager.createConnection();
-            pst = connection.prepareStatement(ConstantsSQL.SELECT_METERS_READINGS_BY_DATE);
-            pst.setObject(1, userId);
-            pst.setInt(2, month);
-            pst.setInt(3, year);
+        try (Connection connection = ConnectionManager.createConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(ConstantsSQL.SELECT_METERS_READINGS_BY_DATE)) {
 
-            rs = pst.executeQuery();
+            preparedStatement.setObject(1, userId);
+            preparedStatement.setInt(2, month);
+            preparedStatement.setInt(3, year);
+
+            resultSet = preparedStatement.executeQuery();
             readings = new ArrayList<>();
 
-            while (rs.next()){
-                BigInteger meterReadingId = rs.getBigDecimal(ConstantsSQL.METER_READING_ID_LABEL).toBigInteger();
-                BigInteger meterTypeId = rs.getBigDecimal(ConstantsSQL.METER_TYPE_ID_LABEL).toBigInteger();
-                Integer reading = rs.getInt(ConstantsSQL.METER_READING_READING_LABEL);
-                Timestamp timestamp = rs.getTimestamp(ConstantsSQL.METER_READING_DATE_LABEL);
+            while (resultSet.next()) {
+                BigInteger meterReadingId = resultSet.getBigDecimal(ConstantsSQL.METER_READING_ID_LABEL).toBigInteger();
+                BigInteger meterTypeId = resultSet.getBigDecimal(ConstantsSQL.METER_TYPE_ID_LABEL).toBigInteger();
+                Integer reading = resultSet.getInt(ConstantsSQL.METER_READING_READING_LABEL);
+                Timestamp timestamp = resultSet.getTimestamp(ConstantsSQL.METER_READING_DATE_LABEL);
                 LocalDateTime date = timestamp.toLocalDateTime();
 
                 readings.add(new MeterReading(meterReadingId, userId, meterTypeId, reading, date));
             }
+
         } catch (SQLException e) {
             System.out.println(e.getMessage());
         } finally {
-            ConnectionManager.closeResultSet(rs);
-            ConnectionManager.closeStatement(pst);
-            ConnectionManager.closeConnection();
+            ConnectionManager.closeResultSet(resultSet);
         }
 
         return Optional.ofNullable(readings);
     }
 
     @Override
-    public Optional<List<MeterReading>> getMetersReadingsUser(BigInteger userId) {
-        List <MeterReading> readings = null;
+    public Optional<List<MeterReading>> findMetersReadingsByUserId(BigInteger userId) {
+        ResultSet resultSet = null;
+        List<MeterReading> readings = null;
 
-        try {
-            connection = ConnectionManager.createConnection();
-            pst = connection.prepareStatement(ConstantsSQL.SELECT_ALL_METERS_READINGS_USER);
-            pst.setObject(1, userId);
-            rs = pst.executeQuery();
+        try (Connection connection = ConnectionManager.createConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(ConstantsSQL.SELECT_ALL_METERS_READINGS_USER)) {
+
+            preparedStatement.setObject(1, userId);
+            resultSet = preparedStatement.executeQuery();
             readings = new ArrayList<>();
 
-            while (rs.next()){
-                BigInteger meterReadingId = rs.getBigDecimal(ConstantsSQL.METER_READING_ID_LABEL).toBigInteger();
-                BigInteger meterTypeId = rs.getBigDecimal(ConstantsSQL.METER_TYPE_ID_LABEL).toBigInteger();
-                Integer reading = rs.getInt(ConstantsSQL.METER_READING_READING_LABEL);
-                Timestamp timestamp = rs.getTimestamp(ConstantsSQL.METER_READING_DATE_LABEL);
+            while (resultSet.next()) {
+                BigInteger meterReadingId = resultSet.getBigDecimal(ConstantsSQL.METER_READING_ID_LABEL).toBigInteger();
+                BigInteger meterTypeId = resultSet.getBigDecimal(ConstantsSQL.METER_TYPE_ID_LABEL).toBigInteger();
+                Integer reading = resultSet.getInt(ConstantsSQL.METER_READING_READING_LABEL);
+                Timestamp timestamp = resultSet.getTimestamp(ConstantsSQL.METER_READING_DATE_LABEL);
                 LocalDateTime date = timestamp.toLocalDateTime();
 
                 readings.add(new MeterReading(meterReadingId, userId, meterTypeId, reading, date));
@@ -168,9 +163,7 @@ public class MeterReadingRepositoryImpl implements MeterReadingRepository {
         } catch (SQLException e) {
             System.out.println(e.getMessage());
         } finally {
-            ConnectionManager.closeResultSet(rs);
-            ConnectionManager.closeStatement(pst);
-            ConnectionManager.closeConnection();
+            ConnectionManager.closeResultSet(resultSet);
         }
 
         return Optional.ofNullable(readings);

@@ -22,11 +22,11 @@ public class UserConsole implements ConsoleInterface {
 
     /**
      * Метод показа главного меню авторизированного пользователя
-     * */
+     */
     public void showMainMenu() {
         int choice = -1;
 
-        while (choice != 0){
+        while (choice != 0) {
             System.out.println("----------- Menu USER -----------");
             System.out.println("[1] View current meter readings");
             System.out.println("[2] Input meter readings");
@@ -35,15 +35,19 @@ public class UserConsole implements ConsoleInterface {
             System.out.println("[0] Exit");
             System.out.print("Enter the option selected:");
 
-            switch (choice = getInputNumberMenu()){
+            switch (choice = getInputNumberMenu()) {
                 case 1 -> {
-                    showCurrentReadings();}
+                    showCurrentReadings();
+                }
                 case 2 -> {
-                    inputReadings();}
+                    inputReadings();
+                }
                 case 3 -> {
-                    showReadingsForSpecificMonth();}
+                    showReadingsForSpecificMonth();
+                }
                 case 4 -> {
-                    showHistory();}
+                    showHistory();
+                }
                 case 0 -> {
                     choice = 0;
                     auditLogService.addAuditLog(currentUser, ActionType.WORK_COMPLETION);
@@ -55,19 +59,19 @@ public class UserConsole implements ConsoleInterface {
 
     /**
      * Метод для отображения последних показаний пользователя
-     * */
+     */
     private void showCurrentReadings() {
         try {
             List<MeterReading> metersReadings = meterReadingService.getLastMetersReadingsByUserId(currentUser.getId());
             System.out.println("The last meters readings: ");
 
-            for (MeterReading meterReading : metersReadings){
+            for (MeterReading meterReading : metersReadings) {
                 System.out.println("-> " + meterReading);
             }
 
             System.out.println("Press any key to continue...");
             new Scanner(System.in).nextLine();
-        }catch (MeterReadingException e){
+        } catch (MeterReadingException e) {
             System.out.println(e.getMessage());
             showMainMenu();
         }
@@ -76,11 +80,11 @@ public class UserConsole implements ConsoleInterface {
     private void inputReadings() {
         Scanner scanner = new Scanner(System.in);
 
-        try{
+        try {
             List<String> namesMetersTypes = meterTypeService.getNamesMetersTypes();
             System.out.println("------- Menu for enter meters readings ------- ");
             System.out.println("Existing meters types: ");
-            for (String meter : namesMetersTypes){
+            for (String meter : namesMetersTypes) {
                 System.out.println("-> " + meter);
             }
 
@@ -92,10 +96,10 @@ public class UserConsole implements ConsoleInterface {
 
             meterReadingService.addReading(currentUser.getId(), nameMeter, reading);
             auditLogService.addAuditLog(currentUser, ActionType.SUBMIT_READING_METER);
-        }catch (MeterTypeException e){
+        } catch (MeterTypeException e) {
             System.out.println(e.getMessage());
             showMainMenu();
-        }catch (MeterReadingException e){
+        } catch (MeterReadingException e) {
             System.out.println(e.getMessage());
             inputReadings();
         }
@@ -114,10 +118,10 @@ public class UserConsole implements ConsoleInterface {
         try {
             List<MeterReading> metersReadings = meterReadingService.getMetersReadingsBySpecificDate(currentUser.getId(), month, year);
             System.out.println("Meters Readings " + month + "th month of " + year + ": ");
-            for (MeterReading meterReading : metersReadings){
+            for (MeterReading meterReading : metersReadings) {
                 System.out.println("-> " + meterReading);
             }
-        }catch (MeterReadingException e){
+        } catch (MeterReadingException e) {
             System.out.println(e.getMessage());
             showMainMenu();
         }
@@ -125,13 +129,13 @@ public class UserConsole implements ConsoleInterface {
 
     private void showHistory() {
         System.out.println("------- Your history of adding meters readings -------");
-        try{
+        try {
             List<MeterReading> meterReadingUser = meterReadingService.getAllMetersReadingsUser(currentUser.getId());
-            for (MeterReading meterReading : meterReadingUser){
+            for (MeterReading meterReading : meterReadingUser) {
                 System.out.println(meterReading);
             }
             auditLogService.addAuditLog(currentUser, ActionType.METERS_READINGS_VIEW);
-        }catch (MeterReadingException e){
+        } catch (MeterReadingException e) {
             System.out.println(e.getMessage());
             showMainMenu();
         }

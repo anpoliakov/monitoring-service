@@ -33,12 +33,12 @@ public class AdminConsole implements ConsoleInterface {
 
     /**
      * Главное меню данной консоли, точка входа в классе
-     * */
+     */
     @Override
     public void showMainMenu() {
         int choice = -1;
 
-        while (choice != 0){
+        while (choice != 0) {
             System.out.println("----------- Menu ADMIN -----------");
             System.out.println("[1] View the readings of all users");
             System.out.println("[2] Add type of Reading");
@@ -47,11 +47,19 @@ public class AdminConsole implements ConsoleInterface {
             System.out.println("[0] Exit");
             System.out.print("Enter the option selected:");
 
-            switch (choice = getInputNumberMenu()){
-                case 1 -> {showMetersReadingsUsers();}
-                case 2 -> {createNewTypeMeter();}
-                case 3 -> {changeRoleUser();}
-                case 4 -> {showAuditLog();}
+            switch (choice = getInputNumberMenu()) {
+                case 1 -> {
+                    showMetersReadingsUsers();
+                }
+                case 2 -> {
+                    createNewTypeMeter();
+                }
+                case 3 -> {
+                    changeRoleUser();
+                }
+                case 4 -> {
+                    showAuditLog();
+                }
                 case 0 -> {
                     choice = 0;
                 }
@@ -62,7 +70,7 @@ public class AdminConsole implements ConsoleInterface {
 
     /**
      * Метод для взаимодействия с администратором и предоставление всех показаний
-     * */
+     */
     private void showMetersReadingsUsers() {
         System.out.println("------- Menu: show all meters readings users -------");
         Scanner scanner = new Scanner(System.in);
@@ -73,13 +81,13 @@ public class AdminConsole implements ConsoleInterface {
 
         try {
             List<MeterReading> meterReadingByUser = meterReadingService.getAllMetersReadingsUser(userId);
-            for (MeterReading meterReading : meterReadingByUser){
+            for (MeterReading meterReading : meterReadingByUser) {
                 System.out.println(meterReading);
             }
 
             System.out.println("Press any key to continue...");
             scanner.nextLine();
-        }catch (MeterReadingException e){
+        } catch (MeterReadingException e) {
             System.out.println(e.getMessage());
             showMainMenu();
         }
@@ -87,8 +95,8 @@ public class AdminConsole implements ConsoleInterface {
 
     /**
      * Метод для взаимодействия с администратором и добавлением нового счётчика
-     * */
-    public void createNewTypeMeter(){
+     */
+    public void createNewTypeMeter() {
         System.out.println("------- Menu: creating new type of meter -------");
         Scanner scanner = new Scanner(System.in);
 
@@ -99,7 +107,7 @@ public class AdminConsole implements ConsoleInterface {
             meterTypeService.addMeterType(newType);
             System.out.println("Success!");
 
-        }catch (MeterTypeException e){
+        } catch (MeterTypeException e) {
             System.out.println(e.getMessage());
             showMainMenu();
         }
@@ -108,8 +116,8 @@ public class AdminConsole implements ConsoleInterface {
 
     /**
      * Метод для взаимодействия с администратором и изменение роли у других пользователей
-     * */
-    public void changeRoleUser(){
+     */
+    public void changeRoleUser() {
         System.out.println("------- Menu: change role user -------");
         Scanner scanner = new Scanner(System.in);
 
@@ -117,7 +125,7 @@ public class AdminConsole implements ConsoleInterface {
 
         RoleType[] values = RoleType.values();
         System.out.println("Exist roles: ");
-        for (RoleType roleType : values){
+        for (RoleType roleType : values) {
             System.out.println("-> " + roleType.name());
         }
 
@@ -133,18 +141,18 @@ public class AdminConsole implements ConsoleInterface {
             User user = userService.getByLogin(loginUser);
             userService.changeUserRole(user, roleType);
 
-        }catch (IllegalArgumentException e){
+        } catch (IllegalArgumentException e) {
             System.out.println("Incorrect type of role!");
-        }catch (UserException e){
+        } catch (UserException e) {
             System.out.println(e.getMessage());
-        }finally {
+        } finally {
             showMainMenu();
         }
     }
 
     /**
      * Метод для взаимодействия с администратором и показ списка аудита
-     * */
+     */
     public void showAuditLog() {
         System.out.println("------- Menu: audit logs -------");
         showExistUsers();
@@ -156,20 +164,20 @@ public class AdminConsole implements ConsoleInterface {
         try {
             List<AuditLog> auditLogs = auditLogService.getAuditLogsByLogin(login);
             System.out.println("Audit logs user: " + login);
-            for(AuditLog auditlog: auditLogs){
+            for (AuditLog auditlog : auditLogs) {
                 System.out.println("->" + auditlog);
             }
-        }catch (AuditLogException e){
+        } catch (AuditLogException e) {
             System.out.println(e.getMessage());
-        }finally {
+        } finally {
             showMainMenu();
         }
     }
 
-    private void showExistUsers(){
-        Map <String, User> allUsers = userService.getAllUsers();
+    private void showExistUsers() {
+        Map<String, User> allUsers = userService.getAllUsers();
         System.out.println("Exist user's login: ");
-        for(Map.Entry<String, User> entry: allUsers.entrySet()){
+        for (Map.Entry<String, User> entry : allUsers.entrySet()) {
             System.out.println("-> User login: " + entry.getKey() + ", role: " + entry.getValue().getRoleType());
         }
     }

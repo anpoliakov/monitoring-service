@@ -2,7 +2,7 @@ package by.anpoliakov.infrastructure.constant;
 
 /**
  * Класс содержащий константы для взаимодействия приложения с БД
- * */
+ */
 public class ConstantsSQL {
     public static final String USER_ID_LABEL = "user_id";
     public static final String USER_LOGIN_LABEL = "login";
@@ -16,8 +16,6 @@ public class ConstantsSQL {
     public static final String METER_READING_ID_LABEL = "meter_reading_id";
     public static final String METER_READING_DATE_LABEL = "date";
     public static final String METER_READING_READING_LABEL = "reading";
-
-    public static final String CREATE_SCHEMA = "CREATE SCHEMA IF NOT EXISTS ";
     public static final String NAME_SYSTEM_SCHEMA_LIQUIBASE = "system_tables_liquibase";
 
     public static final String CREATE_USER = "INSERT INTO entities.users (login, password, role_type_id) " +
@@ -73,4 +71,7 @@ public class ConstantsSQL {
             "WHERE EXTRACT(MONTH FROM entities.meters_readings.date) = (SELECT MAX(EXTRACT(MONTH FROM entities.meters_readings.date)) " +
             "FROM entities.meters_readings) " +
             "AND entities.meters_readings.user_id = ?";
+
+    public static final String UPDATE_ROLE_USER = "UPDATE entities.users " +
+            "SET role_type_id = (SELECT role_type_id FROM entities.roles_types WHERE entities.roles_types.name = ?) WHERE login = ?";
 }

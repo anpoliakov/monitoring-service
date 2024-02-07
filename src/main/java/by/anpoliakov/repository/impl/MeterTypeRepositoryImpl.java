@@ -1,102 +1,96 @@
 package by.anpoliakov.repository.impl;
 
 import by.anpoliakov.domain.entity.MeterType;
-import by.anpoliakov.exception.MeterTypeException;
 import by.anpoliakov.infrastructure.constant.ConstantsSQL;
 import by.anpoliakov.repository.MeterTypeRepository;
 import by.anpoliakov.util.ConnectionManager;
 
 import java.math.BigInteger;
 import java.sql.*;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 
-/** Реализация интерфейса MeterTypeRepository и
- * предоставляет методы для взаимодействия с таблицей meters_types в БД */
+/**
+ * Реализация интерфейса MeterTypeRepository и
+ * предоставляет методы для взаимодействия с таблицей meters_types в БД
+ */
 public class MeterTypeRepositoryImpl implements MeterTypeRepository {
     private static MeterTypeRepository instance;
-    private Connection connection = null;
-    private PreparedStatement pst = null;
-    private ResultSet rs = null;
-    private Statement st = null;
 
-    public MeterTypeRepositoryImpl() {}
+    public MeterTypeRepositoryImpl() {
+    }
 
-    public static MeterTypeRepository getInstance(){
-        if (instance == null){
+    public static MeterTypeRepository getInstance() {
+        if (instance == null) {
             instance = new MeterTypeRepositoryImpl();
         }
         return instance;
     }
 
     @Override
-    public Optional<MeterType> add(String typeName) {
-        try {
-            connection = ConnectionManager.createConnection();
-            connection.setAutoCommit(false);
+    public Optional<MeterType> create(String typeName) {
+        try (Connection connection = ConnectionManager.createConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(ConstantsSQL.CREATE_METER_TYPE)) {
 
-            pst = connection.prepareStatement (ConstantsSQL.CREATE_METER_TYPE);
-            pst.setString(1, typeName);
-            pst.executeUpdate();
+            connection.setAutoCommit(false);
+            preparedStatement.setString(1, typeName);
+            preparedStatement.executeUpdate();
             connection.commit();
 
         } catch (SQLException e) {
-            ConnectionManager.rollBack(connection);
-        }finally {
-            ConnectionManager.closeStatement(pst);
-            ConnectionManager.closeConnection();
+            System.out.println(e.getMessage());
         }
 
-        return getMeterType(typeName);
+        return findMeterType(typeName);
     }
 
     @Override
-    public Optional<MeterType> getMeterType(String typeName) {
+    public Optional<MeterType> findMeterType(String typeName) {
+        ResultSet resultSet = null;
         MeterType meterType = null;
 
-        try {
-            connection = ConnectionManager.createConnection();
-            pst = connection.prepareStatement(ConstantsSQL.SELECT_METER_TYPE);
-            pst.setString(1, typeName);
-            rs = pst.executeQuery();
+        try (Connection connection = ConnectionManager.createConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(ConstantsSQL.SELECT_METER_TYPE)) {
 
-            while (rs.next()){
-                BigInteger meterTypeId = rs.getBigDecimal(ConstantsSQL.METER_TYPE_ID_LABEL).toBigInteger();
-                String meterTypeName = rs.getString(ConstantsSQL.METER_TYPE_NAME_LABEL);
+            preparedStatement.setString(1, typeName);
+            resultSet = preparedStatement.executeQuery();
+
+            while (resultSet.next()) {
+                BigInteger meterTypeId = resultSet.getBigDecimal(ConstantsSQL.METER_TYPE_ID_LABEL).toBigInteger();
+                String meterTypeName = resultSet.getString(ConstantsSQL.METER_TYPE_NAME_LABEL);
 
                 meterType = new MeterType(meterTypeId, meterTypeName);
             }
         } catch (SQLException e) {
             System.out.println(e.getMessage());
         } finally {
-            ConnectionManager.closeResultSet(rs);
-            ConnectionManager.closeStatement(pst);
-            ConnectionManager.closeConnection();
+            ConnectionManager.closeResultSet(resultSet);
         }
 
         return Optional.ofNullable(meterType);
     }
 
     @Override
-    public Optional<List<String>> getNamesMetersTypes(){
-        List <String> names = null;
+    public Optional<List<String>> getNamesMetersTypes() {
+        ResultSet resultSet = null;
+        List<String> names = null;
 
-        try {
-            connection = ConnectionManager.createConnection();
-            st = connection.createStatement();
-            rs = st.executeQuery(ConstantsSQL.SELECT_ALL_METERS_TYPES);
+        try (Connection connection = ConnectionManager.createConnection();
+             Statement statement = connection.createStatement()) {
+
+            resultSet = statement.executeQuery(ConstantsSQL.SELECT_ALL_METERS_TYPES);
             names = new ArrayList<>();
 
-            while (rs.next()){
-                String meterTypeName = rs.getString(ConstantsSQL.METER_TYPE_NAME_LABEL);
+            while (resultSet.next()) {
+                String meterTypeName = resultSet.getString(ConstantsSQL.METER_TYPE_NAME_LABEL);
                 names.add(meterTypeName);
             }
 
         } catch (SQLException e) {
             System.out.println(e.getMessage());
         } finally {
-            ConnectionManager.closeResultSet(rs);
-            ConnectionManager.closeStatement(st);
-            ConnectionManager.closeConnection();
+            ConnectionManager.closeResultSet(resultSet);
         }
 
         return Optional.ofNullable(names);

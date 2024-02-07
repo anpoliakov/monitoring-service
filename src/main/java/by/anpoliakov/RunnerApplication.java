@@ -16,7 +16,6 @@ import liquibase.Liquibase;
 import liquibase.database.Database;
 import liquibase.database.DatabaseFactory;
 import liquibase.database.jvm.JdbcConnection;
-import liquibase.exception.DatabaseException;
 import liquibase.resource.ClassLoaderResourceAccessor;
 
 import java.sql.Connection;
@@ -25,7 +24,7 @@ import java.sql.Statement;
 
 /**
  * Входная точка приложения
- * */
+ */
 public class RunnerApplication {
     public static void main(String[] args) {
         prepareDataBase();
@@ -42,44 +41,35 @@ public class RunnerApplication {
 
     /**
      * Метод для выполнения миграций с помощью Liquibase
-     * */
-    public static void prepareDataBase(){
+     */
+    public static void prepareDataBase() {
         createSystemSchemeLiquibase();
         Database database = null;
 
-        try {
-            Connection connection = ConnectionManager.createConnection();
+        try (Connection connection = ConnectionManager.createConnection()) {
+
             database = DatabaseFactory.getInstance().findCorrectDatabaseImplementation(new JdbcConnection(connection));
             database.setDefaultSchemaName(ConstantsSQL.NAME_SYSTEM_SCHEMA_LIQUIBASE);
-
             Liquibase liquibase = new Liquibase(Constants.PATH_TO_CHANGELOG_FILE, new ClassLoaderResourceAccessor(), database);
             liquibase.update();
             System.out.println("Миграции успешно выполнены!");
+
         } catch (Exception e) {
             e.printStackTrace();
-        }finally {
-            try {
-                database.close();
-            } catch (DatabaseException e) {
-                throw new RuntimeException(e);
-            }
-
-            ConnectionManager.closeConnection();
         }
     }
 
     /**
      * Создание схемы в БД - для хранения системных таблиц liquibase
-     * */
-    private static void createSystemSchemeLiquibase(){
-        Connection connection = ConnectionManager.createConnection();
+     */
+    private static void createSystemSchemeLiquibase() {
+        try (Connection connection = ConnectionManager.createConnection();
+             Statement st = connection.createStatement()) {
 
-        try (Statement st = connection.createStatement()){
-            st.execute(ConstantsSQL.CREATE_SCHEMA + ConstantsSQL.NAME_SYSTEM_SCHEMA_LIQUIBASE);
+            st.execute("CREATE SCHEMA IF NOT EXISTS " + ConstantsSQL.NAME_SYSTEM_SCHEMA_LIQUIBASE);
+
         } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }finally {
-            ConnectionManager.closeConnection();
+            System.out.println(e.getMessage());
         }
     }
 }

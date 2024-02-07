@@ -26,21 +26,28 @@ public class MainConsole implements ConsoleInterface {
     private AuditLogService auditLogService;
     private AuthenticationService authService;
 
-    /** Основное меню программы */
+    /**
+     * Основное меню программы
+     */
     public void showMainMenu() {
         int choice = -1;
 
-        do{
+        do {
             System.out.println("----------- Main menu -----------");
             System.out.println("[1] Authorization");
             System.out.println("[2] Registration");
             System.out.println("[0] Exit");
             System.out.print("Enter the option selected:");
 
-            switch (choice = getInputNumberMenu()){
-                case 1 -> {showLoginMenu();}
-                case 2 -> {showRegistrationMenu();}
-                case 0 -> {}
+            switch (choice = getInputNumberMenu()) {
+                case 1 -> {
+                    showLoginMenu();
+                }
+                case 2 -> {
+                    showRegistrationMenu();
+                }
+                case 0 -> {
+                }
                 default -> System.out.println("Incorrect menu selection, please try again:");
             }
         } while (choice != 0);
@@ -48,7 +55,7 @@ public class MainConsole implements ConsoleInterface {
 
     /**
      * Меню с авторизацией пользователя
-     * */
+     */
     public void showLoginMenu() {
         System.out.println("----------- Authorization -----------");
         System.out.println("(enter [0] to return to the main menu)");
@@ -56,13 +63,13 @@ public class MainConsole implements ConsoleInterface {
 
         System.out.println("Enter your login: ");
         java.lang.String login = scanner.nextLine().trim();
-        if(login.equals("0")){
+        if (login.equals("0")) {
             return;
         }
 
         System.out.println("Enter your password: ");
         java.lang.String password = scanner.nextLine().trim();
-        if(password.equals("0")){
+        if (password.equals("0")) {
             return;
         }
 
@@ -72,7 +79,7 @@ public class MainConsole implements ConsoleInterface {
             auditLogService.addAuditLog(user, ActionType.AUTHORIZATION);
 
             console.showMainMenu();
-        }catch (AuthenticationException e){
+        } catch (AuthenticationException e) {
             System.out.println(e.getMessage());
             showLoginMenu();
         }
@@ -80,7 +87,7 @@ public class MainConsole implements ConsoleInterface {
 
     /**
      * Меню регистрации пользователя
-     * */
+     */
     public void showRegistrationMenu() {
         System.out.println("----------- Registration -----------");
         System.out.println("(enter [0] to return to the main menu)");
@@ -88,21 +95,21 @@ public class MainConsole implements ConsoleInterface {
 
         System.out.println("Enter your login: ");
         java.lang.String login = scanner.nextLine().trim();
-        if(login.equals("0")){
+        if (login.equals("0")) {
             return;
         }
 
         System.out.println("Enter your password: ");
         java.lang.String password = scanner.nextLine().trim();
-        if(password.equals("0")){
+        if (password.equals("0")) {
             return;
         }
 
-        try{
+        try {
             User user = authService.register(login, password);
             ConsoleInterface console = getSpecificConsoleByUser(user);
             console.showMainMenu();
-        }catch (AuthenticationException e){
+        } catch (AuthenticationException e) {
             System.out.println(e.getMessage());
             showMainMenu();
         }
@@ -113,8 +120,9 @@ public class MainConsole implements ConsoleInterface {
      *
      * @param user - пользователь с имеющимся полем RoleType
      * @return конкретная реализация интерфейса ConsoleInterface под определённую
-     * роль пользователя */
-    private ConsoleInterface getSpecificConsoleByUser(User user){
+     * роль пользователя
+     */
+    private ConsoleInterface getSpecificConsoleByUser(User user) {
         ConsoleInterface console = null;
 
         MeterReadingRepository repoMeterReading = MeterReadingRepositoryImpl.getInstance();
@@ -127,11 +135,11 @@ public class MainConsole implements ConsoleInterface {
         AuditLogService auditLogService = new AuditLogServiceImpl(repoAuditLog);
         UserService userService = new UserServiceImpl(repoUser);
 
-        if(RoleType.USER.equals(user.getRoleType())){
-            console = new UserConsole(user,meterReadingService,meterTypeService,auditLogService);
+        if (RoleType.USER.equals(user.getRoleType())) {
+            console = new UserConsole(user, meterReadingService, meterTypeService, auditLogService);
         }
 
-        if(RoleType.ADMIN.equals(user.getRoleType())){
+        if (RoleType.ADMIN.equals(user.getRoleType())) {
             console = new AdminConsole(user, meterReadingService, meterTypeService, userService, auditLogService);
         }
 

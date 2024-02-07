@@ -22,7 +22,7 @@ public class MeterReadingServiceImpl implements MeterReadingService {
 
     @Override
     public void addReading(BigInteger userId, String nameTypeMeter, Integer reading) throws MeterReadingException, MeterTypeException {
-        if(userId == null || nameTypeMeter == null || reading == null){
+        if (userId == null || nameTypeMeter == null || reading == null) {
             throw new MeterReadingException("Parameters should be not null!");
         }
 
@@ -30,21 +30,21 @@ public class MeterReadingServiceImpl implements MeterReadingService {
         MeterReading meterReading = new MeterReading(userId, meterType.getId(), reading, LocalDateTime.now());
         boolean hasMeterReading = repoMeterReading.hasMeterReading(meterReading);
 
-        if(hasMeterReading){
+        if (hasMeterReading) {
             throw new MeterReadingException("The current month's meter readings have already been entered!");
         }
 
-        repoMeterReading.add(meterReading);
+        repoMeterReading.create(meterReading);
     }
 
     @Override
     public List<MeterReading> getLastMetersReadingsByUserId(BigInteger userId) throws MeterReadingException {
-        if(userId == null){
+        if (userId == null) {
             throw new MeterReadingException("Incorrect id's user!");
         }
 
-        Optional<List<MeterReading>> metersReadings = repoMeterReading.getLastMetersReadingsByUserId(userId);
-        if(metersReadings.isEmpty()){
+        Optional<List<MeterReading>> metersReadings = repoMeterReading.findLastMetersReadingsByUserId(userId);
+        if (metersReadings.isEmpty()) {
             throw new MeterReadingException("The user's meter readings do not yet exist!");
         }
 
@@ -53,12 +53,12 @@ public class MeterReadingServiceImpl implements MeterReadingService {
 
     @Override
     public List<MeterReading> getMetersReadingsBySpecificDate(BigInteger userId, int month, int year) {
-        if(month < 0 || month > 12 || year < 2024 ){
+        if (month < 0 || month > 12 || year < 2024) {
             throw new MeterReadingException("Incorrect data: month or(and) year");
         }
 
-        Optional<List<MeterReading>> metersReadings = repoMeterReading.getMetersReadingsBySpecificDate(userId, month, year);
-        if(metersReadings.isEmpty()){
+        Optional<List<MeterReading>> metersReadings = repoMeterReading.findMetersReadingsBySpecificDate(userId, month, year);
+        if (metersReadings.isEmpty()) {
             throw new MeterReadingException("In this " + month + "th month of " + year + ", the user did not submit a meter reading");
         }
 
@@ -67,8 +67,8 @@ public class MeterReadingServiceImpl implements MeterReadingService {
 
     @Override
     public List<MeterReading> getAllMetersReadingsUser(BigInteger userId) {
-        Optional<List<MeterReading>> metersReadings = repoMeterReading.getMetersReadingsUser(userId);
-        if(metersReadings.isEmpty()){
+        Optional<List<MeterReading>> metersReadings = repoMeterReading.findMetersReadingsByUserId(userId);
+        if (metersReadings.isEmpty()) {
             throw new MeterReadingException("The user's meter readings do not yet exist!");
         }
 

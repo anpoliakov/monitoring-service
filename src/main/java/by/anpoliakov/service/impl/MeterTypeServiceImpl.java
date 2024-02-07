@@ -11,7 +11,7 @@ import java.util.Optional;
 
 /**
  * Сервис отвечающий за регистрацию и выдачу типов счётчиков - MeterType
- * */
+ */
 @AllArgsConstructor
 public class MeterTypeServiceImpl implements MeterTypeService {
     private MeterTypeRepository repoMeterType;
@@ -19,26 +19,26 @@ public class MeterTypeServiceImpl implements MeterTypeService {
     @Override
     public MeterType addMeterType(String typeName) throws MeterTypeException {
 
-        if(typeName.trim().isEmpty() || typeName == null){
+        if (typeName.trim().isEmpty() || typeName == null) {
             throw new MeterTypeException("Incorrect name of type meter!");
         }
 
-        Optional<MeterType> optionalMeterType = repoMeterType.getMeterType(typeName);
-        if(optionalMeterType.isPresent()){
+        Optional<MeterType> optionalMeterType = repoMeterType.findMeterType(typeName);
+        if (optionalMeterType.isPresent()) {
             throw new MeterTypeException("This meter already exists in the database!");
         }
 
-        return repoMeterType.add(typeName).get();
+        return repoMeterType.create(typeName).get();
     }
 
     @Override
     public MeterType getMeterType(String typeName) throws MeterTypeException {
-        if(typeName.trim().isEmpty() || typeName == null){
+        if (typeName.trim().isEmpty() || typeName == null) {
             throw new MeterTypeException("Incorrect name of new type meter!");
         }
 
-        Optional<MeterType> meterType = repoMeterType.getMeterType(typeName);
-        if(meterType.isEmpty()){
+        Optional<MeterType> meterType = repoMeterType.findMeterType(typeName);
+        if (meterType.isEmpty()) {
             throw new MeterTypeException("Meter type " + typeName + " is not in the database!");
         }
 
@@ -49,7 +49,7 @@ public class MeterTypeServiceImpl implements MeterTypeService {
     public List<String> getNamesMetersTypes() throws MeterTypeException {
         Optional<List<String>> namesMetersTypes = repoMeterType.getNamesMetersTypes();
 
-        if(namesMetersTypes.isEmpty()){
+        if (namesMetersTypes.isEmpty()) {
             throw new MeterTypeException("There are no meters types in the database!");
         }
 
