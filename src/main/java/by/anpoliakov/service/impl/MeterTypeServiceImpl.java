@@ -4,7 +4,6 @@ import by.anpoliakov.domain.entity.MeterType;
 import by.anpoliakov.exception.MeterTypeException;
 import by.anpoliakov.repository.MeterTypeRepository;
 import by.anpoliakov.service.MeterTypeService;
-import lombok.AllArgsConstructor;
 
 import java.util.List;
 import java.util.Optional;
@@ -12,9 +11,12 @@ import java.util.Optional;
 /**
  * Сервис отвечающий за регистрацию и выдачу типов счётчиков - MeterType
  */
-@AllArgsConstructor
 public class MeterTypeServiceImpl implements MeterTypeService {
     private MeterTypeRepository repoMeterType;
+
+    public MeterTypeServiceImpl(MeterTypeRepository repoMeterType) {
+        this.repoMeterType = repoMeterType;
+    }
 
     @Override
     public MeterType addMeterType(String typeName) throws MeterTypeException {

@@ -1,7 +1,5 @@
 package by.anpoliakov.util;
 
-import by.anpoliakov.infrastructure.constant.Constants;
-
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
@@ -16,7 +14,7 @@ public class ConnectionManager {
 
     static {
         try {
-            Class.forName(Constants.DRIVER_NAME);
+            Class.forName(PropertiesLoader.getProperty("database.driver"));
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
         }
@@ -35,9 +33,9 @@ public class ConnectionManager {
             if (connection == null || connection.isClosed()) {
 
                 connection = DriverManager.getConnection(
-                        PropertyLoader.getProperty("URL"),
-                        PropertyLoader.getProperty("USER_NAME"),
-                        PropertyLoader.getProperty("PASSWORD"));
+                        PropertiesLoader.getProperty("database.url"),
+                        PropertiesLoader.getProperty("database.username"),
+                        PropertiesLoader.getProperty("database.password"));
             }
         } catch (SQLException e) {
             e.printStackTrace();

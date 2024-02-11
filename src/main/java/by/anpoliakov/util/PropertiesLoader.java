@@ -1,33 +1,33 @@
 package by.anpoliakov.util;
 
-import by.anpoliakov.infrastructure.constant.Constants;
-
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Properties;
 
 /**
- * Класс для загрузки properties файлов
+ * Класс для загрузки настроек приложения
  */
-public class PropertyLoader {
+public class PropertiesLoader {
+    private final static String NAME_PROPERTIES_FILE = "application.properties";
+
     /**
-     * Метод предоставляющий значение по ключу из
-     * properties файла
+     * Метод предоставляющий значение по ключу из properties файла
      *
-     * @param keyProperty - ключ по которому из файла достаём property
-     * @return строка - значение полученное по переданному ключу
+     * @param keyProperty - ключ по которому из файла достаём значение
+     * @return String - значение полученное по переданному ключу
      */
     public static String getProperty(String keyProperty) {
         String valueProperty = null;
+        ClassLoader classLoader = PropertiesLoader.class.getClassLoader();
 
-        try (FileInputStream fis = new FileInputStream(Constants.PATH_TO_DB_PROPERTIES)) {
+        try {
+            InputStream resourceAsStream = classLoader.getResourceAsStream(NAME_PROPERTIES_FILE);
             Properties properties = new Properties();
-            properties.load(fis);
-
+            properties.load(resourceAsStream);
             valueProperty = properties.getProperty(keyProperty);
-        } catch (FileNotFoundException e) {
-            throw new RuntimeException(e);
+
+        } catch (NullPointerException e){
+            System.err.println("File properties [resources/" + NAME_PROPERTIES_FILE + "] not exist!");
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

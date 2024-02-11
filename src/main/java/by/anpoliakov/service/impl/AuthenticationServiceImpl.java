@@ -5,16 +5,18 @@ import by.anpoliakov.domain.enums.RoleType;
 import by.anpoliakov.exception.AuthenticationException;
 import by.anpoliakov.repository.UserRepository;
 import by.anpoliakov.service.AuthenticationService;
-import lombok.AllArgsConstructor;
 
 import java.util.Optional;
 
 /**
  * Сервис бизнес-логики по авторизации/регистрации пользователя
  */
-@AllArgsConstructor
 public class AuthenticationServiceImpl implements AuthenticationService {
     private UserRepository userRepository;
+
+    public AuthenticationServiceImpl(UserRepository userRepository) {
+        this.userRepository = userRepository;
+    }
 
     /**
      * Метод для авторизации пользователя
