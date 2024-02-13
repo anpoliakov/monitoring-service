@@ -1,12 +1,10 @@
 package by.anpoliakov.infrastructure.in.servlets;
 
 import by.anpoliakov.domain.dto.UserDto;
-import by.anpoliakov.domain.entity.User;
 import by.anpoliakov.exception.AuthenticationException;
 import by.anpoliakov.repository.impl.UserRepositoryImpl;
 import by.anpoliakov.service.AuthenticationService;
 import by.anpoliakov.service.impl.AuthenticationServiceImpl;
-import by.anpoliakov.util.JwtTokenManager;
 import by.anpoliakov.util.ValidatorDto;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.annotation.WebServlet;
@@ -16,17 +14,16 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.ValidationException;
 
 import java.io.IOException;
-import java.io.PrintWriter;
 
 /**
- * Сервлет для авторизации пользователя
+ * Сервлет для регистрации нового пользователя
  */
-@WebServlet(name = "LoginServlet", urlPatterns = "/login")
-public class LoginServlet extends HttpServlet {
+@WebServlet(name = "RegistrationServlet", urlPatterns = "/registration")
+public class RegistrationServlet extends HttpServlet {
     private final ObjectMapper objectMapper;
     private final AuthenticationService authService;
 
-    public LoginServlet() {
+    public RegistrationServlet() {
         this.objectMapper = new ObjectMapper();
         this.authService = new AuthenticationServiceImpl(UserRepositoryImpl.getInstance());
     }
@@ -35,18 +32,13 @@ public class LoginServlet extends HttpServlet {
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) {
         try {
             req.setCharacterEncoding("UTF-8");
-
             UserDto userDto = objectMapper.readValue(req.getInputStream(), UserDto.class);
             ValidatorDto.validateDto(userDto);
-            User user = authService.authorize(userDto);
-            String token = JwtTokenManager.generateToken(user.getLogin());
+            authService.authorize(userDto);
 
             resp.setContentType("application/json");
-            resp.setCharacterEncoding("UTF-8");
-            PrintWriter out = resp.getWriter();
-            out.print("{" + "token:" + token + "}");
-            out.flush();
             resp.setStatus(HttpServletResponse.SC_OK);
+
         } catch (ValidationException e) {
             resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
         } catch (AuthenticationException e) {

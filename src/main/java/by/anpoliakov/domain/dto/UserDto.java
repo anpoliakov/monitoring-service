@@ -1,11 +1,19 @@
 package by.anpoliakov.domain.dto;
 
 import com.fasterxml.jackson.annotation.JsonSetter;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 
-public class UserDto {
+public class UserDto implements ValidatableDTO {
+    @NotBlank
+    @Size(min = 5)
+    @Size(max = 25)
     @JsonSetter("login")
     private String login;
 
+    @NotBlank
+    @Size(min = 5)
+    @Size(max = 25)
     @JsonSetter("password")
     private String password;
 
