@@ -7,18 +7,20 @@ import by.anpoliakov.exception.MeterTypeException;
 import by.anpoliakov.repository.MeterReadingRepository;
 import by.anpoliakov.service.MeterReadingService;
 import by.anpoliakov.service.MeterTypeService;
-import lombok.AllArgsConstructor;
 
 import java.math.BigInteger;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
-@AllArgsConstructor
 public class MeterReadingServiceImpl implements MeterReadingService {
     private MeterReadingRepository repoMeterReading;
     private MeterTypeService meterTypeService;
 
+    public MeterReadingServiceImpl(MeterReadingRepository repoMeterReading, MeterTypeService meterTypeService) {
+        this.repoMeterReading = repoMeterReading;
+        this.meterTypeService = meterTypeService;
+    }
 
     @Override
     public void addReading(BigInteger userId, String nameTypeMeter, Integer reading) throws MeterReadingException, MeterTypeException {

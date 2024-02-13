@@ -6,15 +6,17 @@ import by.anpoliakov.domain.enums.ActionType;
 import by.anpoliakov.exception.AuditLogException;
 import by.anpoliakov.repository.AuditLogRepository;
 import by.anpoliakov.service.AuditLogService;
-import lombok.AllArgsConstructor;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
-@AllArgsConstructor
 public class AuditLogServiceImpl implements AuditLogService {
     private AuditLogRepository auditLogRepository;
+
+    public AuditLogServiceImpl(AuditLogRepository auditLogRepository) {
+        this.auditLogRepository = auditLogRepository;
+    }
 
     @Override
     public void addAuditLog(User user, ActionType actionType) {

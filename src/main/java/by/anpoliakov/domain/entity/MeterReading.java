@@ -1,15 +1,8 @@
 package by.anpoliakov.domain.entity;
 
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
-
 import java.math.BigInteger;
 import java.time.LocalDateTime;
 
-@Setter
-@Getter
-@ToString
 public class MeterReading {
     private BigInteger id;
     private BigInteger userId;
@@ -30,5 +23,56 @@ public class MeterReading {
         this.meterTypeId = meterTypeId;
         this.readings = readings;
         this.date = date;
+    }
+
+    public BigInteger getId() {
+        return id;
+    }
+
+    public void setId(BigInteger id) {
+        this.id = id;
+    }
+
+    public BigInteger getUserId() {
+        return userId;
+    }
+
+    public void setUserId(BigInteger userId) {
+        this.userId = userId;
+    }
+
+    public BigInteger getMeterTypeId() {
+        return meterTypeId;
+    }
+
+    public void setMeterTypeId(BigInteger meterTypeId) {
+        this.meterTypeId = meterTypeId;
+    }
+
+    public Integer getReadings() {
+        return readings;
+    }
+
+    public void setReadings(Integer readings) {
+        this.readings = readings;
+    }
+
+    public LocalDateTime getDate() {
+        return date;
+    }
+
+    public void setDate(LocalDateTime date) {
+        this.date = date;
+    }
+
+    @Override
+    public String toString() {
+        return "MeterReading{" +
+                "id=" + id +
+                ", userId=" + userId +
+                ", meterTypeId=" + meterTypeId +
+                ", readings=" + readings +
+                ", date=" + date +
+                '}';
     }
 }

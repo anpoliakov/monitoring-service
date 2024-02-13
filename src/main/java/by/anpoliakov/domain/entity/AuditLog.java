@@ -1,14 +1,10 @@
 package by.anpoliakov.domain.entity;
 
 import by.anpoliakov.domain.enums.ActionType;
-import lombok.Getter;
-import lombok.Setter;
 
 import java.math.BigInteger;
 import java.time.LocalDateTime;
 
-@Setter
-@Getter
 /** Класс представляет собой аудит действия пользователя */
 public class AuditLog {
     private BigInteger id;
@@ -32,5 +28,37 @@ public class AuditLog {
     @Override
     public String toString() {
         return "action: " + actionType + ", date: " + date;
+    }
+
+    public BigInteger getId() {
+        return id;
+    }
+
+    public void setId(BigInteger id) {
+        this.id = id;
+    }
+
+    public String getLoginUser() {
+        return loginUser;
+    }
+
+    public void setLoginUser(String loginUser) {
+        this.loginUser = loginUser;
+    }
+
+    public LocalDateTime getDate() {
+        return date;
+    }
+
+    public void setDate(LocalDateTime date) {
+        this.date = date;
+    }
+
+    public ActionType getActionType() {
+        return actionType;
+    }
+
+    public void setActionType(ActionType actionType) {
+        this.actionType = actionType;
     }
 }

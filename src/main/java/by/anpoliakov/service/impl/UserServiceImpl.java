@@ -5,14 +5,16 @@ import by.anpoliakov.domain.enums.RoleType;
 import by.anpoliakov.exception.UserException;
 import by.anpoliakov.repository.UserRepository;
 import by.anpoliakov.service.UserService;
-import lombok.AllArgsConstructor;
 
 import java.util.Map;
 import java.util.Optional;
 
-@AllArgsConstructor
 public class UserServiceImpl implements UserService {
     private UserRepository userRepository;
+
+    public UserServiceImpl(UserRepository userRepository) {
+        this.userRepository = userRepository;
+    }
 
     @Override
     public User getByLogin(String loginUser) throws UserException {

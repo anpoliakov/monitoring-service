@@ -1,5 +1,6 @@
 package by.anpoliakov.service;
 
+import by.anpoliakov.domain.dto.UserDto;
 import by.anpoliakov.domain.entity.User;
 
 /**
@@ -10,18 +11,16 @@ public interface AuthenticationService {
     /**
      * Авторизация пользователя при помощи логина и пароля
      *
-     * @param login    - логин пользователя
-     * @param password - пароль пользователя
+     * @param userDto - data transfer object сущности user
      * @return User - конкретный объект полученный из БД
      */
-    User authorize(String login, String password);
+    User authorize(UserDto userDto);
 
     /**
      * Регистрация нового пользователя
      *
-     * @param name     - имя нового пользователя
-     * @param login    - логин нового пользователя
-     * @param password - пароль нового пользователя
+     * @param userDto - data transfer object сущности user
+     * @return User - конкретный объект полученный из БД
      */
-    User register(String login, String password);
+    User register(UserDto userDto);
 }
